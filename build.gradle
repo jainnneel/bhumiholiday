@@ -7,10 +7,10 @@ plugins {
 group = 'com.test'
 version = '0.0.1-SNAPSHOT'
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(23)
-	}
+toolchains {
+    java {
+        languageVersion = JavaLanguageVersion.of(23)
+    }
 }
 
 repositories {
