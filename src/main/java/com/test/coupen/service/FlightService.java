@@ -156,8 +156,12 @@ public class FlightService {
         {
             return responseDtos.stream()
                     .peek(responseDto -> {
-                        responseDto.setPrice(String.valueOf(Math.ceil(Double.parseDouble(responseDto.getPrice()) - (Double.parseDouble(responseDto.getPrice()) * (coupenEntity.getFixPercentage() / 100)))));
-                        responseDto.setPerPerson(String.valueOf(Math.ceil(Double.parseDouble(responseDto.getPerPerson()) - (Double.parseDouble(responseDto.getPerPerson()) * (coupenEntity.getFixPercentage() / 100)))));
+                        responseDto.setPrice(String.valueOf(
+                                Math.max(Math.ceil(Double.parseDouble(responseDto.getPrice()) - (Double.parseDouble(responseDto.getPrice()) * (coupenEntity.getFixPercentage() / 100))),0)
+                        ));
+                        responseDto.setPerPerson(String.valueOf(
+                                Math.max(Math.ceil(Double.parseDouble(responseDto.getPerPerson()) - (Double.parseDouble(responseDto.getPerPerson()) * (coupenEntity.getFixPercentage() / 100))), 0)
+                        ));
                     })
                     .toList();
         }
@@ -177,8 +181,8 @@ public class FlightService {
                     Double price = Double.parseDouble(responseDto.getPrice());
                     if (price > rangeEntity.getFrom() && price < rangeEntity.getTo())
                     {
-                        responseDto.setPrice(String.valueOf(price - (rangeEntity.getValue() * (adult + child))));
-                        responseDto.setPerPerson(String.valueOf(price - rangeEntity.getValue()));
+                        responseDto.setPrice(String.valueOf(Math.max(price - (rangeEntity.getValue() * (adult + child)), 0)));
+                        responseDto.setPerPerson(String.valueOf(Math.max(price - rangeEntity.getValue(), 0)));
                     }
                 });
         return responseDto;
