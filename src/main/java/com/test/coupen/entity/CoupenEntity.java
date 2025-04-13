@@ -1,10 +1,7 @@
 package com.test.coupen.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Data;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -26,6 +23,26 @@ public class CoupenEntity {
     private List<RangeEntity> rangeDiscounts;
 
     private Double fixPercentage;
+
+    private Integer maxDiscount;
+
+    private Integer minAmount;
+
+    public Integer getMaxDiscount() {
+        return maxDiscount;
+    }
+
+    public void setMaxDiscount(Integer maxDiscount) {
+        this.maxDiscount = maxDiscount;
+    }
+
+    public Integer getMinAmount() {
+        return minAmount;
+    }
+
+    public void setMinAmount(Integer minAmount) {
+        this.minAmount = minAmount;
+    }
 
     public Long getCoupenId() {
         return coupenId;

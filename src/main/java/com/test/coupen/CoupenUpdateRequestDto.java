@@ -18,6 +18,26 @@ public class CoupenUpdateRequestDto {
 
     private Double fixPercentage;
 
+    private Integer maxDiscount;
+
+    private Integer minAmount;
+
+    public Integer getMaxDiscount() {
+        return maxDiscount;
+    }
+
+    public void setMaxDiscount(Integer maxDiscount) {
+        this.maxDiscount = maxDiscount;
+    }
+
+    public Integer getMinAmount() {
+        return minAmount;
+    }
+
+    public void setMinAmount(Integer minAmount) {
+        this.minAmount = minAmount;
+    }
+
     public String getCoupenCode() {
         return coupenCode;
     }

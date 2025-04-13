@@ -41,7 +41,7 @@ public class FlightService {
 
     public List<ResponseDto> getData(String fromc, String toCode, String from, String to, String date, int adult, int child, int infrant, String coupen) throws IOException {
         Optional<CoupenEntity> coupenByCoupenCode = null;
-
+        boolean isDomestic = isDomesticFlight(from, to);
         if (coupen != null && !Objects.equals("null", coupen))
         {
             coupenByCoupenCode = coupenService.getCoupenByCoupenCode(coupen);
@@ -94,7 +94,6 @@ public class FlightService {
             httpConn.setRequestProperty("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36");
             httpConn.setRequestProperty("x-newrelic-id", "undefined");
 
-
             InputStream responseStream = httpConn.getResponseCode() / 100 == 2
                     ? httpConn.getInputStream()
                     : httpConn.getErrorStream();
@@ -114,26 +113,37 @@ public class FlightService {
 
             for (Root root : rt.roots){
                 ResponseDto responseDto = new ResponseDto();
-                responseDto.setFlightName(codeMap.get(root.airlineCodes.get(0)) + "(" + root.sectorKeys.get(0).split("\\|")[0].split("_")[3] + ")");
-                if(root.sectorKeys.get(0).split("\\|").length  > 1){
-//                    System.out.println(root.sectorKeys);
-                }
+                responseDto.setAdult(adult);
+                responseDto.setChild(child);
+                responseDto.setInfrant(infrant);
+
+                if (adult > 0) responseDto.setAdultPerPerson(Double.valueOf(root.priceBreakup.fare.pricingInfo.ADT.totalPrice));
+                if (child > 0) responseDto.setChildPerPerson(Double.valueOf(root.priceBreakup.fare.pricingInfo.CHD.totalPrice));
+                if (infrant > 0) responseDto.setInfrantPerPerson(Double.valueOf(root.priceBreakup.fare.pricingInfo.CHD.totalPrice));
+
+                responseDto.setFlightName(codeMap.get(root.airlineCodes.get(0)));
 
                 if(root.sectorKeys.get(0).split("\\|").length == 1) responseDto.setDuration(LocalTime.MIN.plus(Duration.ofMinutes(root.totalDurationInMinutes)).toString()+" hrs (Non stop)");
                 else responseDto.setDuration(LocalTime.MIN.plus(Duration.ofMinutes(root.totalDurationInMinutes)).toString()+" hrs" + " (" + (root.sectorKeys.get(0).split("\\|").length - 1) +" stops)");
 
                 responseDto.setStops(root.sectorKeys.get(0).split("\\|").length - 1);
                 responseDto.setSectorKeys(root.sectorKeys);
+
                 if(root.priceBreakup.fare.fk.contains("#")){
                     root.priceBreakup.fare.fk = root.priceBreakup.fare.fk.replace("#","");
                 }
+
+                double totalCombinePrice = (responseDto.getAdultPerPerson() * responseDto.getAdult()) +
+                        (responseDto.getChildPerPerson() * responseDto.getChild()) + (responseDto.getInfrantPerPerson() * responseDto.getInfrant());
+
+                responseDto.setDicPerPerson(String.valueOf(Double.valueOf(root.priceBreakup.fare.pricingInfo.ADT.totalPrice)));
+                responseDto.setDiscPrice(totalCombinePrice+"");
                 responseDto.setFkkey(root.priceBreakup.fare.fk);
-                responseDto.setPrice(root.priceBreakup.pr+"");
+                responseDto.setPrice(totalCombinePrice+"");
                 responseDto.setFrom(fromc);
                 responseDto.setTo(toCode);
-                responseDtos.add(responseDto);
                 responseDto.setDate(date);
-                responseDto.setPerPerson(root.priceBreakup.pr/(adult+child)+"");
+                responseDto.setPerPerson(Double.valueOf(root.priceBreakup.fare.pricingInfo.ADT.totalPrice) +"");
                 responseDto.setAirCode(root.airlineCodes.toString());
                 responseDto.setfTime(root.firstDeparture.time +" - " + root.lastArrival.time);
                 responseDto.setTime("From: " + root.firstDeparture.date +" // "+ root.firstDeparture.time+" To: "+ root.lastArrival.date+" // "+ root.lastArrival.time);
@@ -142,26 +152,50 @@ public class FlightService {
                 responseDto.setFromTime(root.firstDeparture.time);
                 responseDto.setToTime(root.lastArrival.time);
                 responseDto.setSeatLeft(root.indicators.seatsLeft+"");
+
+                responseDtos.add(responseDto);
             }
-            Collections.sort(responseDtos,(a,b)->Integer.parseInt(b.price) - Integer.parseInt(a.price));
-            return coupen != null && !Objects.equals("null", coupen) ? modifyPrices(responseDtos, coupenByCoupenCode.get(), adult , child) : responseDtos;
+            responseDtos.sort(Comparator.comparingDouble(a -> Double.parseDouble(a.price)));
+            return coupen != null && !Objects.equals("null", coupen) && isDomestic ? modifyPrices(responseDtos, coupenByCoupenCode.get()) : responseDtos;
         }catch (Exception ex){
             throw ex;
         }
     }
 
-    private List<ResponseDto> modifyPrices(List<ResponseDto> responseDtos, CoupenEntity coupenEntity, int adult, int child) {
+    private boolean isDomesticFlight(String from, String to) {
+        return from.contains(", IN - ") && to.contains(", IN - ");
+    }
 
+    private List<ResponseDto> modifyPrices(List<ResponseDto> responseDtos, CoupenEntity coupenEntity) {
         if (DiscountType.FLAT.equals(coupenEntity.getDiscountType()))
         {
             return responseDtos.stream()
                     .peek(responseDto -> {
-                        responseDto.setPrice(String.valueOf(
-                                Math.max(Math.ceil(Double.parseDouble(responseDto.getPrice()) - (Double.parseDouble(responseDto.getPrice()) * (coupenEntity.getFixPercentage() / 100))),0)
-                        ));
-                        responseDto.setPerPerson(String.valueOf(
-                                Math.max(Math.ceil(Double.parseDouble(responseDto.getPerPerson()) - (Double.parseDouble(responseDto.getPerPerson()) * (coupenEntity.getFixPercentage() / 100))), 0)
-                        ));
+                        if (responseDto.getAdultPerPerson() >= coupenEntity.getMinAmount()) {
+                            double totalCombinePrice = (responseDto.getAdultPerPerson() * responseDto.getAdult()) +
+                                    (responseDto.getChildPerPerson() * responseDto.getChild());
+
+                            double discountedPrice = Math.ceil(totalCombinePrice - Math.min(totalCombinePrice * (coupenEntity.getFixPercentage() / 100), coupenEntity.getMaxDiscount()));
+
+                            responseDto.setDiscPrice(String.valueOf(
+                                    Math.max(Math.ceil(discountedPrice + (responseDto.getInfrantPerPerson() * responseDto.getInfrant())),0)
+                            ));
+                            responseDto.setDicPerPerson(String.valueOf(
+                                    Math.max(Math.ceil(Double.parseDouble(responseDto.getPerPerson()) - (Double.parseDouble(responseDto.getPerPerson()) * (coupenEntity.getFixPercentage() / 100))), 0)
+                            ));
+                        } else {
+                            double totalCombinePrice = (responseDto.getAdultPerPerson() * responseDto.getAdult()) +
+                                    (responseDto.getChildPerPerson() * responseDto.getChild());
+
+                            double discountedPrice = Math.ceil(totalCombinePrice - 0);
+
+                            responseDto.setDiscPrice(String.valueOf(
+                                    Math.max(Math.ceil(discountedPrice + (responseDto.getInfrantPerPerson() * responseDto.getInfrant())),0)
+                            ));
+                            responseDto.setDicPerPerson(String.valueOf(
+                                    Math.max(Math.ceil(Double.parseDouble(responseDto.getPerPerson())), 0)
+                            ));
+                        }
                     })
                     .toList();
         }
@@ -170,19 +204,30 @@ public class FlightService {
             List<RangeEntity> rangeEntities = coupenEntity.getRangeDiscounts();
 
             return responseDtos.stream()
-                    .map(responseDto -> applyDiscounts(responseDto, rangeEntities, adult, child))
+                    .map(responseDto -> applyDiscounts(responseDto, rangeEntities))
+                    .peek(responseDto -> {
+                        if (Objects.isNull(responseDto.getDiscPrice())) {
+                            responseDto.setDiscPrice(responseDto.getPrice());
+                            responseDto.setDicPerPerson(responseDto.getPerPerson());
+                        }
+                    })
                     .toList();
         }
     }
 
-    private ResponseDto applyDiscounts(ResponseDto responseDto, List<RangeEntity> rangeEntities, int adult, int child) {
+    private ResponseDto applyDiscounts(ResponseDto responseDto, List<RangeEntity> rangeEntities) {
         rangeEntities
                 .forEach(rangeEntity -> {
-                    Double price = Double.parseDouble(responseDto.getPrice());
+                    Double price = Double.parseDouble(responseDto.getPerPerson());
                     if (price > rangeEntity.getFrom() && price < rangeEntity.getTo())
                     {
-                        responseDto.setPrice(String.valueOf(Math.max(price - (rangeEntity.getValue() * (adult + child)), 0)));
-                        responseDto.setPerPerson(String.valueOf(Math.max(price - rangeEntity.getValue(), 0)));
+                        double totalCombinePrice = (responseDto.getAdultPerPerson() * responseDto.getAdult()) +
+                                (responseDto.getChildPerPerson() * responseDto.getChild());
+
+                        double discountedPrice = Math.ceil(totalCombinePrice - (rangeEntity.getValue() * (responseDto.getAdult() + responseDto.getChild())));
+
+                        responseDto.setDiscPrice(String.valueOf(Math.max(discountedPrice + (responseDto.getInfrantPerPerson() * responseDto.getInfrant()), 0)));
+                        responseDto.setDicPerPerson(String.valueOf(Math.max(price - rangeEntity.getValue(), 0)));
                     }
                 });
         return responseDto;

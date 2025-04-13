@@ -9,7 +9,7 @@ import java.util.List;
 // import com.fasterxml.jackson.annotation.JsonProperty; // version 2.11.1
 /* ObjectMapper om = new ObjectMapper();
 Root root = om.readValue(myJsonString, Root.class); */
-class ADT{
+class PessangerType {
     public Integer baseFare;
     public Integer yq;
     public Integer totalTax;
@@ -131,7 +131,14 @@ class PriceBreakup{
 
 class PricingInfo{
     @JsonProperty("ADT")
-    public ADT aDT;
+    public PessangerType ADT;
+
+    @JsonProperty("INF")
+    public PessangerType INF;
+
+    @JsonProperty("CHD")
+    public PessangerType CHD;
+
 }
 
 class Root{

@@ -11,6 +11,12 @@ public class ResponseDto {
 
     String price;
 
+    String discPrice;
+
+    String perPerson;
+
+    String dicPerPerson;
+
     String from;
 
     String to;
@@ -20,8 +26,6 @@ public class ResponseDto {
     String time;
 
     String airCode;
-
-    String perPerson;
 
     String fTime;
 
@@ -40,6 +44,78 @@ public class ResponseDto {
     String seatLeft;
     String fromCode;
     String toCode;
+
+    Double adultPerPerson = 0.0;
+    Double childPerPerson = 0.0;
+    Double infrantPerPerson = 0.0;
+
+    Integer adult;
+    Integer child;
+    Integer infrant;
+
+    public String getDiscPrice() {
+        return discPrice;
+    }
+
+    public void setDiscPrice(String discPrice) {
+        this.discPrice = discPrice;
+    }
+
+    public String getDicPerPerson() {
+        return dicPerPerson;
+    }
+
+    public void setDicPerPerson(String dicPerPerson) {
+        this.dicPerPerson = dicPerPerson;
+    }
+
+    public Integer getAdult() {
+        return adult;
+    }
+
+    public void setAdult(Integer adult) {
+        this.adult = adult;
+    }
+
+    public Integer getChild() {
+        return child;
+    }
+
+    public void setChild(Integer child) {
+        this.child = child;
+    }
+
+    public Integer getInfrant() {
+        return infrant;
+    }
+
+    public void setInfrant(Integer infrant) {
+        this.infrant = infrant;
+    }
+
+    public Double getAdultPerPerson() {
+        return adultPerPerson;
+    }
+
+    public void setAdultPerPerson(Double adultPerPerson) {
+        this.adultPerPerson = adultPerPerson;
+    }
+
+    public Double getChildPerPerson() {
+        return childPerPerson;
+    }
+
+    public void setChildPerPerson(Double childPerPerson) {
+        this.childPerPerson = childPerPerson;
+    }
+
+    public Double getInfrantPerPerson() {
+        return infrantPerPerson;
+    }
+
+    public void setInfrantPerPerson(Double infrantPerPerson) {
+        this.infrantPerPerson = infrantPerPerson;
+    }
 
     public String getToCode() {
         return toCode;

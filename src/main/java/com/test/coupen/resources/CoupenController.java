@@ -40,6 +40,20 @@ public class CoupenController {
         if(Objects.equals(requestDto.getDiscountType(), DiscountType.RANGE)){
             validateRanges(requestDto.getRangeDiscounts());
         }
+        if(Objects.equals(requestDto.getDiscountType(), DiscountType.FLAT)) {
+
+            if (requestDto.getFixPercentage() == null) {
+                throw  new BadRequestException("Discount percentage is required");
+            }
+
+            if (requestDto.getMinAmount() == null && requestDto.getMaxDiscount() == null) {
+                throw  new BadRequestException("Min and Max should not be null");
+            }
+
+            if (requestDto.getMinAmount() > requestDto.getMaxDiscount()) {
+                throw  new BadRequestException("Min disc should be less than Max Disc");
+            }
+        }
         return coupenService.saveCoupen(requestDto);
     }
 
@@ -47,6 +61,20 @@ public class CoupenController {
     public CoupenEntity putCoupen(@PathVariable("id") Long coupenId, @RequestBody @Valid CoupenUpdateRequestDto requestDto) throws BadRequestException {
         if(Objects.equals(requestDto.getDiscountType(), DiscountType.RANGE)){
             validateRangesUpdate(requestDto.getRangeDiscounts());
+        }
+        if(Objects.equals(requestDto.getDiscountType(), DiscountType.FLAT)) {
+
+            if (requestDto.getFixPercentage() == null) {
+                throw  new BadRequestException("Discount percentage is required");
+            }
+
+            if (requestDto.getMinAmount() == null && requestDto.getMaxDiscount() == null) {
+                throw  new BadRequestException("Min and Max should not be null");
+            }
+
+            if (requestDto.getMinAmount() > requestDto.getMaxDiscount()) {
+                throw  new BadRequestException("Min disc should be less than Max Disc");
+            }
         }
         return coupenService.updateCoupen(coupenId, requestDto);
     }

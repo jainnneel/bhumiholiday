@@ -28,7 +28,11 @@ public class CoupenService {
         List<RangeEntity> ranges = getRangesCreate(requestDto.getRangeDiscounts(), coupen);
         coupen.setCoupenCode(requestDto.getCoupenCode());
         coupen.setDiscountType(requestDto.getDiscountType());
-        coupen.setFixPercentage(requestDto.getFixPercentage());
+        if (Objects.equals(requestDto.getDiscountType(), DiscountType.FLAT)){
+            coupen.setFixPercentage(requestDto.getFixPercentage());
+            coupen.setMaxDiscount(requestDto.getMaxDiscount());
+            coupen.setMinAmount(requestDto.getMinAmount());
+        }
         coupenRepository.save(coupen);
         if(Objects.equals(requestDto.getDiscountType(), DiscountType.RANGE)){
             rangeRepository.saveAll(ranges);
@@ -42,8 +46,11 @@ public class CoupenService {
         coupen.setCoupenId(coupenId);
         coupen.setCoupenCode(requestDto.getCoupenCode());
         coupen.setDiscountType(requestDto.getDiscountType());
-        coupen.setFixPercentage(requestDto.getFixPercentage());
-
+        if (Objects.equals(requestDto.getDiscountType(), DiscountType.FLAT)){
+            coupen.setFixPercentage(requestDto.getFixPercentage());
+            coupen.setMaxDiscount(requestDto.getMaxDiscount());
+            coupen.setMinAmount(requestDto.getMinAmount());
+        }
         if(Objects.equals(requestDto.getDiscountType(), DiscountType.RANGE)){
             List<RangeEntity> list = requestDto.getRangeDiscounts().stream()
                     .map(dto -> {
