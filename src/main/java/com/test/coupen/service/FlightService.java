@@ -181,7 +181,7 @@ public class FlightService {
                                     Math.max(Math.ceil(discountedPrice + (responseDto.getInfrantPerPerson() * responseDto.getInfrant())),0)
                             ));
                             responseDto.setDicPerPerson(String.valueOf(
-                                    Math.max(Math.ceil(Double.parseDouble(responseDto.getPerPerson()) - (Double.parseDouble(responseDto.getPerPerson()) * (coupenEntity.getFixPercentage() / 100))), 0)
+                                    Math.max(Math.ceil(Double.parseDouble(responseDto.getPerPerson()) - (Math.min(Double.parseDouble(responseDto.getPerPerson()) * (coupenEntity.getFixPercentage() / 100), coupenEntity.getMaxDiscount()))), 0)
                             ));
                         } else {
                             double totalCombinePrice = (responseDto.getAdultPerPerson() * responseDto.getAdult()) +

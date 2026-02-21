@@ -10,23 +10,46 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+
 @SpringBootApplication
 public class CoupenApplication {
 
-	@Autowired
-	KafkaProducer kafkaProducer;
+//	@Autowired
+//	KafkaProducer kafkaProducer;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		SpringApplication.run(CoupenApplication.class, args);
+//		new CoupenApplication().test();
+
+//		System.out.println(new BigDecimal(62255L).multiply(new BigDecimal("0.01")).toString());
+
+//		List<LocalDate> localDates = List.of(LocalDate.now(), LocalDate.now().plus(1, ChronoUnit.DAYS), LocalDate.now().plus(2, ChronoUnit.DAYS));
+//
+//		List<LocalDate> list = localDates.stream().sorted(Comparator.reverseOrder()).toList();
+//		System.out.println(list);
+
 	}
 
-	@Bean
-	CommandLineRunner run(DroolsExecutor executor) {
-		return args -> {
-			Transaction transaction = new Transaction(6000, "PURCHASE");
-			executor.evaluateTransaction(transaction);
-		};
-	}
+//	void test() throws IOException {
+//		InputStream keystoreStream = getClass().getClassLoader().getResourceAsStream("keystore/baeldung.p12");
+//		System.out.println(Arrays.toString(keystoreStream.readAllBytes()));;
+//	}
+
+//	@Bean
+//	CommandLineRunner run(DroolsExecutor executor) {
+//		return args -> {
+//			Transaction transaction = new Transaction(6000, "PURCHASE");
+//			executor.evaluateTransaction(transaction);
+//		};
+//	}
 
 	@PostConstruct
 	public void publishMessage(){

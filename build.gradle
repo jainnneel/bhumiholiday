@@ -35,7 +35,7 @@ dependencies {
 
 	// Spring Boot Actuator
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-
+	implementation 'org.postgresql:postgresql:42.7.2'
 
 	// https://mvnrepository.com/artifact/mysql/mysql-connector-java
 // https://mvnrepository.com/artifact/com.mysql/mysql-connector-j
