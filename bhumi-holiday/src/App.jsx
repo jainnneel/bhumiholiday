@@ -8,7 +8,6 @@ import Signup         from './pages/Signup'
 import Dashboard      from './pages/Dashboard'
 import FlightSearch   from './pages/FlightSearch'
 import CouponSuccess  from './pages/CouponSuccess'
-import ContactPage    from './pages/ContactPage'
 import LoadingScreen  from './components/LoadingScreen'
 
 function ProtectedRoute({ children }) {
@@ -73,9 +72,9 @@ export default function App() {
           <FlightSearch darkMode={darkMode} setDarkMode={setDarkMode} />
         } />
 
-        <Route path="/contact" element={
-          <ContactPage darkMode={darkMode} setDarkMode={setDarkMode} />
-        } />
+        {/*<Route path="/contact" element={*/}
+        {/*  <ContactPage darkMode={darkMode} setDarkMode={setDarkMode} />*/}
+        {/*} />*/}
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

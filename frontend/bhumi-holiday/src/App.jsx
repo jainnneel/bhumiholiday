@@ -8,7 +8,7 @@ import Signup         from './pages/Signup'
 import Dashboard      from './pages/Dashboard'
 import FlightSearch   from './pages/FlightSearch'
 import CouponSuccess  from './pages/CouponSuccess'
-import ContactPage    from './pages/ContactPage'
+// import ContactPage    from './pages/ContactPage'
 import LoadingScreen  from './components/LoadingScreen'
 
 function ProtectedRoute({ children }) {
