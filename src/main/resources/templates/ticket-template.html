@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>E-Ticket</title>
+    <style>
+        body { font-family: Helvetica, Arial, sans-serif; color: #333; font-size: 14px; margin: 0; padding: 20px; }
+        .header { border-bottom: 2px solid #2563EB; padding-bottom: 10px; margin-bottom: 20px; position: relative; }
+        .header h1 { color: #1D4ED8; margin: 0; font-size: 24px; text-transform: uppercase; }
+        .header p { color: #64748B; margin: 5px 0 0; font-size: 12px; }
+        .pnr-box { position: absolute; right: 0; top: 0; background: #EEF2FF; border: 1px solid #C7D2FE; padding: 10px; border-radius: 4px; font-weight: bold; font-size: 16px; color: #4338CA; }
+        
+        .section { margin-bottom: 20px; }
+        .section-title { background: #F1F5F9; border-left: 4px solid #2563EB; padding: 5px 10px; font-weight: bold; margin-bottom: 10px; color: #1E293B; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #E2E8F0; padding: 8px 12px; text-align: left; }
+        th { background: #F8FAFC; color: #475569; font-weight: bold; font-size: 12px; text-transform: uppercase; }
+        
+        .company-details { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #CBD5E1; font-size: 12px; color: #64748B; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Flight E-Ticket</h1>
+        <p>Generated on <span th:text="${generatedAt}"></span></p>
+        <div class="pnr-box">PNR: <span th:text="${pnr}"></span></div>
+    </div>
+
+    <!-- Company Details Optional -->
+    <div th:if="${ticket.includeCompanyDetails}" class="section">
+        <div class="section-title">Issued By: Bhumi Holidays</div>
+        <p style="margin: 5px 0;">Contact: +91 8980345600 | support@bhumiholidays.com</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Flight Itinerary</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Airline</th>
+                    <th>Flight No</th>
+                    <th>Route</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td th:text="${ticket.flightName}"></td>
+                    <td th:text="${ticket.flightLabel}"></td>
+                    <td th:text="${ticket.route}"></td>
+                    <td th:text="${ticket.date}"></td>
+                    <td th:text="${ticket.time}"></td>
+                    <td th:text="${ticket.duration}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section" th:if="${ticket.showPricingInformation}">
+        <div class="section-title">Payment Summary</div>
+        <table>
+            <tr>
+                <th style="width: 70%">Total Passengers</th>
+                <td th:text="${ticket.totalPassengers}"></td>
+            </tr>
+            <tr>
+                <th>Price per Passenger</th>
+                <td>Rs. <span th:text="${#numbers.formatDecimal(pricePP, 0, 'COMMA', 2, 'POINT')}"></span></td>
+            </tr>
+            <tr>
+                <th>Total Paid Amount</th>
+                <td style="font-weight: bold; color: #10B981;">Rs. <span th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 2, 'POINT')}"></span></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="company-details">
+        <p><strong>Note:</strong> Carry a valid Photo ID along with this ticket to the airport. Check-in counters close 60 mins prior to departure.</p>
+        <p>Thank you for choosing Go Fly High / Bhumi Holidays.</p>
+    </div>
+</body>
+</html>

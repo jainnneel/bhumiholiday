@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight Quote Tool</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+  <style>
+    /* ── Design tokens ─────────────────────────────────── */
+    :root {
+      --primary:      #2563EB;
+      --primary-dark: #1D4ED8;
+      --indigo:       #6366F1;
+      --success:      #10B981;
+      --warning:      #F59E0B;
+      --danger:       #EF4444;
+      --bg:           #F1F5F9;
+      --surface:      #FFFFFF;
+      --border:       #E2E8F0;
+      --text:         #1E293B;
+      --muted:        #64748B;
+      --shadow:       0 1px 3px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-lg:    0 8px 24px rgba(0,0,0,.12);
+      --radius:       14px;
+      --radius-sm:    8px;
+    }
+
+    /* ── Reset & base ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ────────────────────────────────────────── */
+    .app-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--indigo) 100%);
+      color: #fff;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-lg);
+    }
+    .app-header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.3px; }
+    .app-header .subtitle { font-size: .8rem; opacity: .8; margin-top: 2px; }
+
+    /* ── Search card ───────────────────────────────────── */
+    .search-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      margin: 20px 16px;
+      padding: 20px 20px 16px;
+    }
+    .search-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 600px) {
+      .search-grid { grid-template-columns: 1fr; }
+    }
+
+    /* field group */
+    .field-group { display: flex; flex-direction: column; gap: 4px; }
+    .field-group label { font-size: .72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .field-group input,
+    .field-group select {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      font-size: .93rem;
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color .2s;
+      width: 100%;
+    }
+    .field-group input:focus,
+    .field-group select:focus { outline: none; border-color: var(--primary); }
+
+    /* autocomplete dropdown */
+    .autocomplete-wrapper { position: relative; }
+    .autocomplete-results {
+      position: absolute;
+      z-index: 100;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-lg);
+      max-height: 220px;
+      overflow-y: auto;
+      width: 100%;
+      display: none;
+    }
+    .autocomplete-results.open { display: block; }
+    .autocomplete-results li {
+      list-style: none;
+      padding: 9px 14px;
+      font-size: .88rem;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .autocomplete-results li:hover { background: #F0F4FF; color: var(--primary); }
+
+    /* pax row */
+    .pax-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 400px) { .pax-row { grid-template-columns: 1fr 1fr; } }
+
+    /* swap button */
+    .swap-btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 4px 0;
+    }
+    .swap-btn button {
+      background: #EEF2FF;
+      border: none;
+      border-radius: 50%;
+      width: 36px; height: 36px;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background .2s;
+    }
+    .swap-btn button:hover { background: #C7D2FE; }
+
+    /* CTA button */
+    .search-btn {
+      margin-top: 16px;
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--indigo) 100%);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 13px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .3px;
+      transition: opacity .2s, transform .1s;
+    }
+    .search-btn:hover { opacity: .92; }
+    .search-btn:active { transform: scale(.99); }
+    .search-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    /* ── Filter bar ────────────────────────────────────── */
+    .filter-bar {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin: 0 16px 12px;
+      padding: 12px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .filter-bar input,
+    .filter-bar select {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 7px 10px;
+      font-size: .85rem;
+      color: var(--text);
+      background: var(--surface);
+      flex: 1 1 120px;
+      min-width: 100px;
+      transition: border-color .2s;
+    }
+    .filter-bar input:focus,
+    .filter-bar select:focus { outline: none; border-color: var(--primary); }
+    .filter-bar label { font-size: .75rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .filter-item { display: flex; align-items: center; gap: 6px; }
+    .btn-select-all {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 7px 14px;
+      font-size: .82rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity .2s;
+    }
+    .btn-select-all:hover { opacity: .88; }
+    .btn-select-all.deselect { background: var(--danger); }
+
+    /* ── Result count ──────────────────────────────────── */
+    .result-info {
+      margin: 0 16px 10px;
+      font-size: .85rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .result-info strong { color: var(--text); }
+
+    /* ── Quote action bar ──────────────────────────────── */
+    .quote-bar {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin: 0 16px 16px;
+      padding: 12px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .quote-bar label { font-size: .8rem; color: var(--muted); font-weight: 600; }
+    .quote-bar input {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 7px 10px;
+      font-size: .85rem;
+      width: 110px;
+    }
+    .quote-bar input:focus { outline: none; border-color: var(--primary); }
+
+    .btn-quote {
+      background: var(--success);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn-quote:hover { opacity: .88; }
+    .btn-quote.secondary { background: var(--indigo); }
+    .btn-quote.bhumi-multi {
+      background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+    }
+
+    /* ── Flight cards ──────────────────────────────────── */
+    #flightCards { padding: 0 16px 80px; }
+
+    .flight-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+      overflow: hidden;
+      transition: box-shadow .2s, transform .2s;
+      border: 1.5px solid transparent;
+    }
+    .flight-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-1px);
+      border-color: #BFDBFE;
+    }
+
+    /* card top bar */
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .airline-name { font-weight: 700; font-size: .98rem; color: var(--text); }
+    .flight-nums  { font-size: .78rem; color: var(--primary); margin-top: 2px; font-weight: 600; }
+    .badges-col   { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+
+    /* badges */
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+    .badge-nonstop { background: #D1FAE5; color: #065F46; }
+    .badge-stop    { background: #FEF3C7; color: #92400E; }
+    .badge-seats   { background: #EEF2FF; color: var(--indigo); }
+
+    /* route section */
+    .route-section {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+    .endpoint { text-align: center; min-width: 54px; }
+    .endpoint.arr { text-align: right; }
+    .endpoint .time  { font-size: 1.3rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .endpoint .city  { font-size: .85rem; font-weight: 700; color: var(--primary); margin: 3px 0; }
+    .endpoint .date  { font-size: .72rem; color: var(--muted); }
+
+    .flight-line {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+    .flight-line .dur   { font-size: .78rem; font-weight: 700; color: var(--text); }
+    .flight-line .plane-line {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 4px;
+      color: var(--muted);
+    }
+    .flight-line .plane-line hr {
+      flex: 1;
+      border: none;
+      border-top: 2px solid var(--border);
+    }
+    .flight-line .plane-line .plane-icon { color: var(--primary); font-size: .9rem; }
+    .flight-line .via { font-size: .7rem; color: var(--muted); }
+
+    /* card bottom */
+    .card-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #F8FAFC;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .price-block .price-amount {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+    }
+    .price-block .price-label { font-size: .7rem; color: var(--muted); margin-top: 1px; }
+
+    .action-btns { display: flex; flex-wrap: wrap; gap: 5px; }
+    .btn-copy {
+      background: #EEF2FF;
+      color: var(--primary);
+      border: 1px solid #C7D2FE;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: .72rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .3px;
+      transition: background .15s, color .15s;
+      white-space: nowrap;
+    }
+    .btn-copy:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .btn-bhumi {
+      background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 11px;
+      font-size: .72rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .3px;
+      white-space: nowrap;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn-bhumi:hover  { opacity: .88; }
+    .btn-bhumi:active { transform: scale(.97); }
+
+    .select-block label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .8rem;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .select-block input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--primary);
+    }
+
+    /* ── Loading overlay ───────────────────────────────── */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,.82);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 999;
+    }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 4px solid #BFDBFE;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-overlay p { color: var(--primary); font-weight: 600; font-size: .95rem; }
+
+    /* ── Error message ─────────────────────────────────── */
+    .error-box {
+      background: #FEF2F2;
+      border: 1.5px solid #FECACA;
+      border-radius: var(--radius-sm);
+      color: var(--danger);
+      padding: 14px 18px;
+      font-size: .9rem;
+      font-weight: 500;
+      margin: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ── Ticket Modal ────────────────────────────────────── */
+    .ticket-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: 0.2s; }
+    .ticket-overlay.open { opacity: 1; visibility: visible; }
+    .ticket-modal { background: var(--surface); border-radius: var(--radius); width: 90%; max-width: 450px; padding: 24px; box-shadow: var(--shadow-lg); position: relative; transform: translateY(-20px); transition: 0.2s; }
+    .ticket-overlay.open .ticket-modal { transform: translateY(0); }
+    .ticket-modal h3 { margin-bottom: 16px; font-size: 1.2rem; color: var(--primary); }
+    .ticket-modal .form-group { margin-bottom: 14px; }
+    .ticket-modal label { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; color: var(--text); }
+    .ticket-modal input[type="text"], .ticket-modal input[type="number"], .ticket-modal input[type="email"] { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 6px; }
+    .ticket-modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
+    .ticket-btn-cancel { padding: 8px 16px; background: #e2e8f0; border: none; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; color: #475569; }
+    .ticket-btn-down { padding: 8px 16px; background: var(--indigo); border: none; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; color: #fff; }
+    .ticket-btn-email { padding: 8px 16px; background: var(--success); border: none; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; color: #fff; }
+    .ticket-btn-down:disabled, .ticket-btn-email:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── Empty state ───────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-state i { font-size: 3rem; margin-bottom: 12px; color: #CBD5E1; }
+    .empty-state p { font-size: .95rem; }
+
+    /* ── Scroll-to-top button ─────────────────────────────── */
+    .scroll-top-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--indigo) 100%);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(10px);
+      transition: opacity .25s, visibility .25s, transform .25s;
+      z-index: 500;
+    }
+    .scroll-top-btn.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .scroll-top-btn:hover { opacity: .85; }
+
+    /* ── Utility ───────────────────────────────────────── */
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <i class="fa fa-plane" style="font-size:1.4rem"></i>
+  <div>
+    <h1>Flight Quote Tool</h1>
+    <div class="subtitle">Powered by Bhumi Holidays</div>
+  </div>
+</header>
+
+<!-- Search Form -->
+<div class="search-card">
+
+  <!-- From / To -->
+  <div class="search-grid">
+    <div class="field-group">
+      <label>From</label>
+      <div class="autocomplete-wrapper">
+        <input type="text" id="search1" placeholder="City or airport" autocomplete="off">
+        <ul class="autocomplete-results" id="results1"></ul>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>To</label>
+      <div class="autocomplete-wrapper">
+        <input type="text" id="search2" placeholder="City or airport" autocomplete="off">
+        <ul class="autocomplete-results" id="results2"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Swap -->
+  <div class="swap-btn">
+    <button onclick="swapCities()" title="Swap cities">
+      <i class="fa fa-exchange"></i>
+    </button>
+  </div>
+
+  <!-- Date + passengers -->
+  <div class="search-grid">
+    <div class="field-group">
+      <label>Travel Date</label>
+      <input type="date" id="date">
+    </div>
+    <div class="field-group"><!-- spacer --></div>
+  </div>
+
+  <div class="pax-row">
+    <div class="field-group">
+      <label>Adults</label>
+      <select id="qnt">
+        <option value="1" selected>1</option>
+        <option value="2">2</option><option value="3">3</option>
+        <option value="4">4</option><option value="5">5</option>
+        <option value="6">6</option><option value="7">7</option>
+        <option value="8">8</option><option value="9">9</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label>Children</label>
+      <select id="child">
+        <option value="0" selected>0</option>
+        <option value="1">1</option><option value="2">2</option>
+        <option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option>
+        <option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label>Infants</label>
+      <select id="infrants">
+        <option value="0" selected>0</option>
+        <option value="1">1</option><option value="2">2</option>
+        <option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option>
+        <option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="search-btn" id="searchBtn" onclick="onsearch1()">
+    <i class="fa fa-search" style="margin-right:6px"></i> Search Flights
+  </button>
+</div>
+
+<!-- Filter bar (shown after results load) -->
+<div class="filter-bar" id="filterBar" hidden>
+  <div class="filter-item">
+    <label>Airline</label>
+    <input type="text" id="flightCode" placeholder="e.g. AI, 6E" onkeyup="filterByAirline(this.value)">
+  </div>
+  <div class="filter-item">
+    <label>Search</label>
+    <input type="text" id="flightDataSearch" placeholder="Search anything…" onkeyup="searchAllCards(this.value)">
+  </div>
+  <div class="filter-item">
+    <label>Stops</label>
+    <select id="NoStops" onchange="filterByStops(this.value)">
+      <option value="All">All</option>
+      <option value="0">Non-stop</option>
+      <option value="1">1 Stop</option>
+      <option value="2">2 Stops</option>
+    </select>
+  </div>
+  <button class="btn-select-all" id="selectAllBtn" onclick="toggleSelectAll()">Select All</button>
+</div>
+
+<!-- Result count -->
+<div class="result-info" id="resultInfo" hidden>
+  <span><strong id="resultCount">0</strong> flights found</span>
+  <span id="routeLabel" style="color:var(--primary);font-weight:600"></span>
+</div>
+
+<!-- Quote action bar -->
+<div class="quote-bar" id="quoteBar" hidden>
+  <label>Discount ₹</label>
+  <input type="number" id="discountPrice" placeholder="0" min="0">
+  <button class="btn-quote" onclick="flightDetails2()">
+    <i class="fa fa-copy" style="margin-right:4px"></i>Only Flight Info
+  </button>
+  <button class="btn-quote secondary" onclick="flightDetails3()">
+    <i class="fa fa-copy" style="margin-right:4px"></i>Flight Info
+  </button>
+  <button class="btn-quote bhumi-multi" onclick="flightDetailsBhumi()">
+    🏷️ Bhumi Holiday
+  </button>
+</div>
+
+<!-- Cards container -->
+<div id="flightCards">
+  <div class="empty-state" id="emptyState">
+    <i class="fa fa-plane"></i>
+    <p>Enter your journey details above and click <strong>Search Flights</strong></p>
+  </div>
+</div>
+
+<!-- Scroll-to-top button -->
+<button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">
+  <i class="fa fa-chevron-up"></i>
+</button>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="isLoading" hidden>
+  <div class="spinner"></div>
+  <p>Searching available flights…</p>
+</div>
+
+<script>
+  /* ══════════════════════════════════════════════════
+     CONFIGURATION
+  ══════════════════════════════════════════════════ */
+  let serverName = "localhost:8083";
+  // let serverName = "api.goflyhigh.in";
+
+  /* ══════════════════════════════════════════════════
+     GLOBAL STATE  (same as original file)
+  ══════════════════════════════════════════════════ */
+  let list = [];   // holds structured flight objects for quote generation
+  let from;        // full city string (with IATA) of origin
+  let to;          // full city string (with IATA) of destination
+  let rowId = 0;
+
+  /* ══════════════════════════════════════════════════
+     AUTOCOMPLETE — search1
+  ══════════════════════════════════════════════════ */
+  const searchInput1 = document.getElementById('search1');
+  const searchInput2 = document.getElementById('search2');
+  const dropDown1    = document.getElementById('results1');
+  const dropDown2    = document.getElementById('results2');
+
+  // ── Default field values ────────────────────────────────
+  searchInput1.value = 'Ahmedabad, IN – Sardar Vallabh Bhai Patel (AMD)';
+  searchInput2.value = 'Mumbai, IN – Chhatrapati Shivaji Airport (BOM)';
+  (function () {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    const yyyy = d.getFullYear();
+    const mm   = String(d.getMonth() + 1).padStart(2, '0');
+    const dd   = String(d.getDate()).padStart(2, '0');
+    document.getElementById('date').value = `${yyyy}-${mm}-${dd}`;
+  })();
+
+  searchInput1.addEventListener('keyup', () => {
+    const input = searchInput1.value;
+    dropDown1.innerHTML = '';
+    dropDown1.classList.remove('open');
+    if (!input.length) return;
+    fetch(`http://${serverName}/search/` + input)
+      .then(r => r.json())
+      .then(result => {
+        const items = result.map(c => c.v);
+        if (!items.length) return;
+        dropDown1.innerHTML = items.map(item =>
+          `<li onclick="setItem1('${item.replace(/'/g,"\\'")}')">
+            <i class="fa fa-map-marker" style="color:var(--primary);margin-right:6px;font-size:.75rem"></i>${item}
+          </li>`
+        ).join('');
+        dropDown1.classList.add('open');
+      }).catch(() => {});
+  });
+
+  function setItem1(item) {
+    searchInput1.value = item;
+    dropDown1.classList.remove('open');
+    dropDown1.innerHTML = '';
+  }
+
+  /* ── search2 ── */
+  searchInput2.addEventListener('keyup', () => {
+    const input = searchInput2.value;
+    dropDown2.innerHTML = '';
+    dropDown2.classList.remove('open');
+    if (!input.length) return;
+    fetch(`http://${serverName}/search/` + input)
+      .then(r => r.json())
+      .then(result => {
+        const items = result.map(c => c.v);
+        if (!items.length) return;
+        dropDown2.innerHTML = items.map(item =>
+          `<li onclick="setItem2('${item.replace(/'/g,"\\'")}')">
+            <i class="fa fa-map-marker" style="color:var(--primary);margin-right:6px;font-size:.75rem"></i>${item}
+          </li>`
+        ).join('');
+        dropDown2.classList.add('open');
+      }).catch(() => {});
+  });
+
+  function setItem2(item) {
+    searchInput2.value = item;
+    dropDown2.classList.remove('open');
+    dropDown2.innerHTML = '';
+  }
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!searchInput1.contains(e.target)) { dropDown1.classList.remove('open'); }
+    if (!searchInput2.contains(e.target)) { dropDown2.classList.remove('open'); }
+  });
+
+  function swapCities() {
+    const tmp = searchInput1.value;
+    searchInput1.value = searchInput2.value;
+    searchInput2.value = tmp;
+  }
+
+  /* ══════════════════════════════════════════════════
+     MAIN SEARCH  (same API call + URL logic as original)
+  ══════════════════════════════════════════════════ */
+  function onsearch1() {
+    list = [];
+    rowId = 0;
+
+    from = document.getElementById('search1').value;
+    to   = document.getElementById('search2').value;
+    let date = document.getElementById('date').value;
+    let e1 = document.getElementById('qnt').value;
+    let e2 = document.getElementById('child').value;
+    let e3 = document.getElementById('infrants').value;
+
+    if (!from || !to || !date) {
+      showError('Please fill in all search fields.');
+      return;
+    }
+    if (e1 == 0 || e1 > 9) {
+      showError('Adult count must be between 1 and 9.');
+      return;
+    }
+
+    let fromc = from.substring(from.indexOf('(') + 1, from.indexOf(')'));
+    let toCode = to.substring(to.indexOf('(') + 1, to.indexOf(')'));
+    let fromCity = from.substring(0, from.indexOf(",")).replace(/\s/g, '');
+    let toCity   = to.substring(0, to.indexOf(",")).replace(/\s/g, '');
+
+    // Pass date as-is ("YYYY-MM-DD" from the input).
+    // Backend FlightService.getData() splits on "-" and reformats to "DD/MM/YYYY" itself.
+    // Reformatting here would embed slashes in the URL path, breaking path-variable parsing.
+
+    // Clear previous results
+    const container = document.getElementById('flightCards');
+    container.innerHTML = '';
+    document.getElementById('filterBar').hidden  = true;
+    document.getElementById('resultInfo').hidden = true;
+    document.getElementById('quoteBar').hidden   = true;
+    document.getElementById('emptyState') && (container.innerHTML = '');
+
+    // Show loader, disable button
+    document.getElementById('isLoading').hidden = false;
+    document.getElementById('searchBtn').disabled = true;
+
+    const apiUrl = `http://${serverName}/find/${from}/${to}/${date}/${e1}/${e2}/${e3}/null`;
+
+    fetch(apiUrl, { method: 'GET', redirect: 'follow' })
+      .then(r => r.json())
+      .then(result => {
+        document.getElementById('isLoading').hidden = true;
+        document.getElementById('searchBtn').disabled = false;
+
+        if (!result || result.length === 0) {
+          container.innerHTML = `<div class="error-box">
+            <i class="fa fa-info-circle"></i> No flights found for this route and date.
+          </div>`;
+          return;
+        }
+
+        // ── Show ui chrome ──
+        document.getElementById('filterBar').hidden  = false;
+        document.getElementById('resultInfo').hidden = false;
+        document.getElementById('quoteBar').hidden   = false;
+        document.getElementById('resultCount').textContent = result.length;
+        document.getElementById('routeLabel').textContent  = fromc + ' → ' + toCode;
+        document.getElementById('flightCode').value = '';
+        document.getElementById('NoStops').value = 'All';
+
+        // ── Process each result (all URL logic identical to original) ──
+        result.forEach(obj => {
+
+          list.push({
+            flightName: obj.flightName,
+            flightLabel: parseSectorKey(obj.sectorKeys, obj.flightName).flightLabel,
+            from: from,
+            to: to,
+            fromc: obj.from,
+            toc: obj.to,
+            date: obj.date,
+            time: obj.fTime,
+            duration: obj.duration,
+            adult: e1,
+            child: e2,
+            Infrants: e3,
+            price: obj.perPerson,
+            sectorKey: obj.sectorKeys,
+            stops: obj.stops,
+            fromTime: obj.fromTime.replace(":", ""),
+            toTime:   obj.toTime.replace(":", "")
+          });
+
+          // ── All URL construction below is IDENTICAL to original ──
+          let uidMobile = '', newuid = '', mDiscount = '', withUId = '';
+          let discount0 = '', intDiscount = '', domDiscount = '';
+          let ctf = '', yatra = '', skyscanner = '', cleartrip = '';
+          let google = '', wigo = '', ixigo = '', emt = '', emtVip = '';
+
+          var airlineCode      = obj.airCode.slice(1, -1);
+          var airlineCodeArray = airlineCode.split(", ");
+
+          if (from.substring(from.indexOf(',') + 2, from.indexOf(',') + 4) === 'IN' &&
+              to.substring(to.indexOf(',') + 2,   to.indexOf(',') + 4)   === 'IN') {
+
+            newuid     = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + "&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=";
+            uidMobile  = 'https://www.cleartrip.com/m/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + "&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=";
+            discount0  = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + "&utm_source=wego";
+            domDiscount= 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&uid=&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price;
+
+            /* ── Flight-number extraction from sectorKeys (fixes the flightName.split issue) ── */
+            const flightNums = extractFlightNums(obj.sectorKeys); // e.g. ["810", "1745"]
+
+            if (obj.stops === 0) {
+              yatra = 'https://secure.yatra.com/air-service/meta/v3/pricing?Adult=' + e1 + '&Child=' + e2 + '&Infant=' + e3 + '&PointOfSaleCountry=IN&DisplayedPrice=' + obj.price + '&DisplayedPriceCurrency=INR&UserLanguage=en&UserCurrency=INR&TripType=OneWay&Slice1=1&Cabin1=Economy&Carrier1=' + airlineCodeArray[0] + '&DepartureDate1=' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + '&Origin1=' + obj.from + '&Destination1=' + obj.to + '&FlightNumber1=' + (flightNums[0] || '') + '&MarketingCarrier1=' + airlineCodeArray[0] + '&ValidatingCarrier1=' + airlineCodeArray[0] + '&BookingCode1&ReferralId=GFS';
+              ixigo  = 'https://www.ixigo.com/api/v2/meta/partner/deeplink?Adult=' + e1 + '&Child=' + e2 + '&Infant=' + e3 + '&source=SearchAPI&UserLanguage=en&DisplayedPrice=' + obj.price + '&TripType=OneWay&Slice1=1&Cabin1=Economy&Carrier1=' + airlineCodeArray[0] + '&DepartureDate1=' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + '&Origin1=' + obj.from + '&Destination1=' + obj.to + '&FlightNumber1=' + (flightNums[0] || '') + '&apiKey=googleYHKQNLOAUM!2$&ReferralId=GOOG_GFS_712&gclid=ADowPOLXFAi-rT-N4Qf0PshNPXaULQzUbn7KYMfUeWw70ZWGoZOIBachHbJ5dEiyzTFUn0AoJ8B-CvRtHfMJg8hlwis3mS5RrH9kextLUUmtoviNS_Eh&gclsrc=gf';
+            } else if (obj.stops === 1) {
+              var parts = obj.sectorKeys[0].split(/[ _\|]/).filter(part => part.length === 3);
+              yatra = 'https://secure.yatra.com/air-service/meta/v3/pricing?Adult=' + e1 + '&Child=' + e2 + '&Infant=' + e3 + '&PointOfSaleCountry=IN&DisplayedPrice=' + obj.price + '&DisplayedPriceCurrency=INR&UserLanguage=en&UserCurrency=INR&TripType=OneWay&Slice1=1,2&Cabin1=Economy&Carrier1=' + airlineCodeArray[0] + '&DepartureDate1=' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + '&Origin1=' + (parts[0] || '') + '&Destination1=' + (parts[1] || '') + '&FlightNumber1=' + (flightNums[0] || '') + '&MarketingCarrier1=' + airlineCodeArray[0] + '&ValidatingCarrier1=' + airlineCodeArray[0] + '&BookingCode1&Cabin2=Economy&Carrier2=' + airlineCodeArray[0] + '&DepartureDate2=' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + '&Origin2=' + (parts[1] || '') + '&Destination2=' + (parts[3] || '') + '&FlightNumber2=' + (flightNums[1] || '') + '&MarketingCarrier2=' + airlineCodeArray[0] + '&ValidatingCarrier2=' + airlineCodeArray[0] + '&BookingCode2&ReferralId=GFS';
+              ixigo  = 'https://www.ixigo.com/api/v2/meta/partner/deeplink?Adult=' + e1 + '&Child=' + e2 + '&Infant=' + e3 + '&source=SearchAPI&UserLanguage=en&DisplayedPrice=' + obj.price + '&TripType=OneWay&Slice1=1,2&Cabin1=Economy&Carrier1=' + airlineCodeArray[0] + '&DepartureDate1=' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + '&Origin1=' + obj.from + '&Destination1=' + obj.to + '&FlightNumber1=' + (flightNums[0] || '') + '&Carrier2=' + airlineCodeArray[0] + '&DepartureDate2=' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + '&Origin2=' + (parts[1] || '') + '&Destination2=' + (parts[3] || '') + '&FlightNumber2=' + (flightNums[1] || '') + '&apiKey=googleYHKQNLOAUM!2$&ReferralId=GOOG_GFS_712&gclid=ADowPOLXFAi-rT-N4Qf0PshNPXaULQzUbn7KYMfUeWw70ZWGoZOIBachHbJ5dEiyzTFUn0AoJ8B-CvRtHfMJg8hlwis3mS5RrH9kextLUUmtoviNS_Eh&gclsrc=gf';
+            }
+
+            emt        = 'https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult=' + e1 + '&Child=' + e2 + '&Infant=' + e3 + '&PointOfSaleCountry=IN&UserCurrency=INR&DisplayedPrice=' + (parseInt(obj.price) - 250) + '&DisplayedPriceCurrency=INR&UserLanguage=en&TripType=OneWay&Slice1=1&cc=&Cabin1=Economy&DepartureDate1=' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + '&Origin1=' + obj.from + '&Destination1=' + obj.to + '&BookingCode1=&FlightNumber1=' + (flightNums[0] || '') + '&Segment1=Cabin%3DEconomy,Carrier%3D' + airlineCodeArray[0] + ',DepartureDate%3D' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + 'T' + obj.fromTime.replace(":", "") + ',Origin%3D' + obj.from + ',Destination%3D' + obj.to + ',FlightNumber%3D' + (flightNums[0] || '') + ',ArrivalDate%3D' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + 'T' + obj.toTime.replace(":", "") + ',id%3D1,BookingCode%3D&ReferralId=GoogleEMT&domType=Any&gclid=ADowPOKJZ_avw0QhpyqbsmK4ZrOMJ-RialyYVyECaHK9aMBqsCBD5xGEzrSxCbT1vj7u5hl1KeLwsLqPtQERl53Il0wDnAqSNDqgmRwI4fdijyUEsbF3&gclsrc=gf';
+            emtVip     = 'https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult=' + e1 + '&Child=' + e2 + '&Infant=' + e3 + '&PointOfSaleCountry=IN&UserCurrency=INR&DisplayedPrice=' + (parseInt(obj.price) - 250) + '&DisplayedPriceCurrency=INR&UserLanguage=en&TripType=OneWay&Slice1=1&cc=&Cabin1=Economy&DepartureDate1=' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + '&Origin1=' + obj.from + '&Destination1=' + obj.to + '&BookingCode1=&FlightNumber1=' + (flightNums[0] || '') + '&Segment1=Cabin%3DEconomy,Carrier%3D' + airlineCodeArray[0] + ',DepartureDate%3D' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + 'T' + obj.fromTime.replace(":", "") + ',Origin%3D' + obj.from + ',Destination%3D' + obj.to + ',FlightNumber%3D' + (flightNums[0] || '') + ',ArrivalDate%3D' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + 'T' + obj.toTime.replace(":", "") + ',id%3D1,BookingCode%3D';
+            skyscanner = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&psid=DC_Search-92eec72e-53e4-491e-b78f-3ffa0417950a&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + '&utm_source=skyscanner&utm_medium=meta&utm_campaign=skyscanner-core-dom_fl_in';
+            cleartrip  = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + '&uid=null';
+            google     = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&psid=sis_y_QU1EfERFTHwxNjk3MDQ5MDAwMDAwfDF8MHwwfEVDT05PTVl8SU58UlN8Ulp8fFJFR1VMQVJ8cHJvZHVjdGlvbl9JTl9zZWFyY2hfaW5kaWdvX25ld3NraWVzX25ld19YT35BTUReREVMXjZFXjE1OCtSMElQ&uid=73Hoiho6oSbivGZ+8nmLEDKDOlRD9Ik4aQzcs/LJluA=&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + '&utm_source=GFS_Search&utm_medium=CPA&utm_campaign=GFS_India';
+          } else {
+            newuid    = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&fare_key=' + obj.fkkey + '&price=' + obj.price + "&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&intl=Y";
+            uidMobile = 'https://www.cleartrip.com/m/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&fare_key=' + obj.fkkey + '&price=' + obj.price + "&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&intl=Y";
+            skyscanner= 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&psid=DC_Search-92eec72e-53e4-491e-b78f-3ffa0417950a&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + '&utm_source=skyscanner&utm_medium=meta&utm_campaign=skyscanner-core-dom_fl_in&intl=Y';
+            cleartrip = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + '&uid=null&intl=Y';
+            google    = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&psid=sis_y_QU1EfERFTHwxNjk3MDQ5MDAwMDAwfDF8MHwwfEVDT05PTVl8SU58UlN8Ulp8fFJFR1VMQVJ8cHJvZHVjdGlvbl9JTl9zZWFyY2hfaW5kaWdvX25ld3NraWVzX25ld19YT35BTUReREVMXjZFXjE1OCtSMElQ&uid=73Hoiho6oSbivGZ+8nmLEDKDOlRD9Ik4aQzcs/LJluA=&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + '&utm_source=GFS_Search&utm_medium=CPA&utm_campaign=GFS_India&intl=Y';
+            const flightNums = extractFlightNums(obj.sectorKeys);
+            ixigo = 'https://www.ixigo.com/api/v2/meta/partner/deeplink?Adult=' + e1 + '&Child=' + e2 + '&Infant=' + e3 + '&source=SearchAPI&UserLanguage=en&DisplayedPrice=' + obj.price + '&TripType=OneWay&Slice1=1&Cabin1=Economy&Carrier1=' + airlineCodeArray[0] + '&DepartureDate1=' + obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1") + '&Origin1=' + obj.from + '&Destination1=' + obj.to + '&FlightNumber1=' + (flightNums[0] || '') + '&apiKey=googleYHKQNLOAUM!2$&ReferralId=GOOG_GFS_712&gclid=ADowPOLXFAi-rT-N4Qf0PshNPXaULQzUbn7KYMfUeWw70ZWGoZOIBachHbJ5dEiyzTFUn0AoJ8B-CvRtHfMJg8hlwis3mS5RrH9kextLUUmtoviNS_Eh&gclsrc=gf&intl=Y';
+          }
+
+          intDiscount = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&fare_key=' + obj.fkkey + '&price=' + obj.price + "&uid=&intl=Y";
+          mDiscount   = 'https://www.cleartrip.com/m/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&fare_key=' + obj.fkkey + '&price=' + obj.price + "&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&intl=Y";
+          withUId     = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&fare_key=' + obj.fkkey + '&price=' + obj.price + "&uid=73Hoiho6oSbivGZ+8nmLEDKDOlRD9Ik4aQzcs/LJluA=&intl=Y&utm_source=GFS_SEARCH";
+          ctf         = 'https://www.cleartrip.com/m/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + "&uid=undefined";
+          wigo        = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&fare_key=' + obj.fkkey + '&price=' + obj.price + "&uid=iBYz4rpzYx1WFsIAHJYJC1rIXCA2ocA1kJ5jWOxyuO8=&intl=Y&utm_source=GFS_SEARCH";
+
+          // ── Render card ──────────────────────────────────────────
+          const card = buildCard(obj, rowId, { yatra, ixigo, emt, emtVip, cleartrip });
+          container.appendChild(card);
+          rowId++;
+        });
+
+        // ── Auto-scroll to results ──
+        setTimeout(() => {
+          document.getElementById('filterBar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      })
+      .catch(err => {
+        document.getElementById('isLoading').hidden = true;
+        document.getElementById('searchBtn').disabled = false;
+        console.error(err);
+        container.innerHTML = `<div class="error-box">
+          <i class="fa fa-exclamation-triangle"></i>
+          No flights available for this route. Please try different dates or cities.
+        </div>`;
+      });
+  }
+
+  /* ══════════════════════════════════════════════════
+     HELPER — extract flight numbers from new sectorKey format
+     "AI-810-AMD-DEL-1775313900|AI-1745-DEL-BOM-1775347200"
+       → ["810", "1745"]
+  ══════════════════════════════════════════════════ */
+  function extractFlightNums(sectorKeys) {
+    if (!sectorKeys || !sectorKeys.length) return [];
+    return sectorKeys[0].split('|').map(seg => {
+      const parts = seg.split('-');
+      return parts.length >= 2 ? parts[1] : '';   // index 1 = flight number
+    });
+  }
+
+  /* ══════════════════════════════════════════════════
+     HELPER — extract display info from sectorKey
+     Returns { flightLabel, route, viaLabel }
+  ══════════════════════════════════════════════════ */
+  function parseSectorKey(sectorKeys, fallback) {
+    if (!sectorKeys || !sectorKeys.length) return { flightLabel: fallback, route: '', viaLabel: '' };
+    const segments = sectorKeys[0].split('|');
+    const flightLabels = [];
+    const airports = [];
+    segments.forEach((seg, i) => {
+      const p = seg.split('-');
+      // "AI-810-AMD-DEL-1775313900" → p[0]=AI, p[1]=810, p[2]=AMD, p[3]=DEL
+      if (p.length >= 4) {
+        flightLabels.push(p[0] + '-' + p[1]);
+        if (i === 0) airports.push(p[2]);
+        airports.push(p[3]);
+      }
+    });
+    const vias = airports.slice(1, -1);
+    return {
+      flightLabel: flightLabels.length ? flightLabels.join(' › ') : fallback,
+      route:       airports.join(' › '),
+      viaLabel:    vias.length ? 'via ' + vias.join(', ') : ''
+    };
+  }
+
+  /* ══════════════════════════════════════════════════
+     HELPER — compute real gate-to-gate duration
+     Accounts for layovers AND overnight/cross-date flights.
+     fromDate: "DD/MM/YYYY"  toDate: "DDMMYYYY"
+     fromTime / toTime: "HH:MM"
+  ══════════════════════════════════════════════════ */
+  function calcDuration(fromDate, fromTime, toDate, toTime) {
+    try {
+      const [fd, fm, fy] = fromDate.split('/').map(Number);   // DD MM YYYY
+      const td = parseInt(toDate.substring(0, 2), 10);
+      const tm = parseInt(toDate.substring(2, 4), 10);
+      const ty = parseInt(toDate.substring(4), 10);
+      const [fh, fmin] = fromTime.split(':').map(Number);
+      const [th, tmin] = toTime.split(':').map(Number);
+      const dep = new Date(fy, fm - 1, fd, fh, fmin);
+      const arr = new Date(ty, tm - 1, td, th, tmin);
+      const diffMin = Math.round((arr - dep) / 60000);
+      if (diffMin <= 0) return null;
+      const h = Math.floor(diffMin / 60);
+      const m = diffMin % 60;
+      return h + 'h ' + String(m).padStart(2, '0') + 'm';
+    } catch (_) { return null; }
+  }
+
+  /* ══════════════════════════════════════════════════
+     HELPER — format date label
+  ══════════════════════════════════════════════════ */
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function fmtDepDate(dateStr) {           // "04/04/2026" → "04 Apr"
+    try {
+      const p = dateStr.split('/');
+      return p[0] + ' ' + MON[parseInt(p[1]) - 1];
+    } catch(_) { return dateStr; }
+  }
+  function fmtArrDate(dateStr) {           // "05042026" → "05 Apr"
+    try {
+      return dateStr.substring(0, 2) + ' ' + MON[parseInt(dateStr.substring(2, 4)) - 1];
+    } catch(_) { return dateStr; }
+  }
+
+  /* ══════════════════════════════════════════════════
+     BUILD FLIGHT CARD DOM
+  ══════════════════════════════════════════════════ */
+  function buildCard(obj, id, urls) {
+    const info = parseSectorKey(obj.sectorKeys, obj.flightName);
+
+    // Duration — use actual timestamps; fall back to what backend sent
+    const dur = calcDuration(obj.fromDate, obj.fromTime, obj.toDate, obj.toTime) || obj.duration;
+
+    const stopsText  = obj.stops === 0 ? 'Non-stop' : obj.stops + ' Stop' + (obj.stops > 1 ? 's' : '');
+    const badgeClass = obj.stops === 0 ? 'badge-nonstop' : 'badge-stop';
+    const price      = '₹' + parseInt(obj.perPerson).toLocaleString('en-IN');
+
+    const card = document.createElement('div');
+    card.className = 'flight-card';
+    card.dataset.stops   = obj.stops;
+    card.dataset.airline = obj.airCode.slice(1, -1).trim();
+    card.id = 'card-' + id;
+
+    card.innerHTML = `
+      <div class="card-top">
+        <div>
+          <div class="airline-name">${obj.flightName}</div>
+          <div class="flight-nums">${info.flightLabel}</div>
+        </div>
+        <div class="badges-col">
+          <span class="badge ${badgeClass}">${stopsText}</span>
+          <span class="badge badge-seats">🪑 ${obj.seatLeft} left</span>
+        </div>
+      </div>
+
+      <div class="route-section">
+        <div class="endpoint">
+          <div class="time">${obj.fromTime}</div>
+          <div class="city">${obj.from}</div>
+          <div class="date">${fmtDepDate(obj.fromDate)}</div>
+        </div>
+        <div class="flight-line">
+          <div class="dur">${dur}</div>
+          <div class="plane-line">
+            <hr><span class="plane-icon">✈</span><hr>
+          </div>
+          <div class="via">${info.viaLabel}</div>
+        </div>
+        <div class="endpoint arr">
+          <div class="time">${obj.toTime}</div>
+          <div class="city">${obj.to}</div>
+          <div class="date">${fmtArrDate(obj.toDate)}</div>
+        </div>
+      </div>
+
+      <div class="card-bottom">
+        <div class="price-block">
+          <div class="price-amount">${price}</div>
+          <div class="price-label">per person</div>
+        </div>
+        <div class="action-btns">
+          <button class="btn-copy" data-key="card">📋 Copy</button>
+          <button class="btn-copy" data-key="yatra">YATRA</button>
+          <button class="btn-copy" data-key="ixigo">IXIGO</button>
+          <button class="btn-copy" data-key="emt">EMT</button>
+          <button class="btn-copy" data-key="emtvip">EMT VIP</button>
+          <button class="btn-copy" data-key="cleartrip">Cleartrip</button>
+          <button class="btn-bhumi" data-key="bhumi">🏷️ Bhumi Holiday</button>
+          <button class="btn-ticket" data-key="ticket" style="background: #10B981; color: #fff; border: none; border-radius: 6px; padding: 5px 11px; font-size: .72rem; font-weight: 700; cursor: pointer; white-space: nowrap;">📩 Ticket</button>
+        </div>
+        <div class="select-block">
+          <label>
+            <input type="checkbox" class="details" value="${id}">
+            <span>Select</span>
+          </label>
+        </div>
+      </div>`;
+
+    // Bind copy buttons using closure (URLs + card data are captured)
+    card.querySelectorAll('.btn-copy, .btn-bhumi, .btn-ticket').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.key;
+
+        if (key === 'card') {
+          copyAllFiltered();
+
+        } else if (key === 'ticket') {
+          openTicketModal(id);
+
+        } else if (key === 'bhumi') {
+          const detail     = list[id];
+          const discount   = parseInt(document.getElementById('discountPrice').value) || 0;
+          const pricePP    = parseInt(obj.perPerson) - discount;
+          const pax        = (parseInt(detail.adult) || 1) + (parseInt(detail.child) || 0);
+          const totalPrice = pricePP * pax;
+          const stopsLabel = obj.stops === 0 ? 'Non stop'
+                           : obj.stops + ' Stop' + (obj.stops > 1 ? 's' : '');
+
+          // Format duration "1h 15m" → "01:15 hrs"
+          const durBhumi = (function (d) {
+            const m = (d || '').match(/(\d+)h\s*(\d+)m/);
+            return m ? String(m[1]).padStart(2, '0') + ':' + String(m[2]).padStart(2, '0') + ' hrs' : (d || '');
+          })(dur);
+
+          // Current timestamp for the note
+          const now = new Date();
+          const noteDate = [
+            String(now.getDate()).padStart(2, '0'),
+            String(now.getMonth() + 1).padStart(2, '0'),
+            now.getFullYear()
+          ].join('/') + ', ' + [
+            String(now.getHours()).padStart(2, '0'),
+            String(now.getMinutes()).padStart(2, '0'),
+            String(now.getSeconds()).padStart(2, '0')
+          ].join(':');
+
+          const bhumiText =
+`✈️ FLIGHT DETAILS - BOOKING CONFIRMATION
+==================================================
+BHUMI HOLIDAYS
+Your Trusted Travel Partner
+==================================================
+FLIGHT INFORMATION:
+------------------
+Airline: ${obj.flightName}(${info.flightLabel})
+Route: ${obj.from} ➡️ ${obj.to}
+Date: ${obj.fromDate}
+Departure Time: ${obj.fromTime} - ${obj.toTime}
+Flight Duration: ${durBhumi} (${stopsLabel})
+
+PRICING DETAILS:
+------------------
+Price per Person: ₹ ${pricePP.toLocaleString('en-IN')}
+Total price: ₹ ${totalPrice.toLocaleString('en-IN')}
+==================================================
+📝 Note: Airline ticket pricing is dynamic. Fares quoted are valid as of ${noteDate} and might change at the time of issuance.
+
+Thank you for choosing Bhumi Holidays! Safe travels! ✈️
+Contact: +91 8980345600 | support@bhumiholidays.com
+==================================================`;
+          copyText(bhumiText);
+
+        } else {
+          const urlMap = { yatra: urls.yatra, ixigo: urls.ixigo, emt: urls.emt, emtvip: urls.emtVip, cleartrip: urls.cleartrip };
+          copyText(urlMap[key] || '');
+        }
+      });
+    });
+
+    return card;
+  }
+
+  /* ══════════════════════════════════════════════════
+     COPY ALL FILTERED CARDS
+  ══════════════════════════════════════════════════ */
+  function copyAllFiltered() {
+    const visibleCards = [...document.querySelectorAll('.flight-card')].filter(c => c.style.display !== 'none');
+    if (!visibleCards.length) return;
+
+    const discount = parseInt(document.getElementById('discountPrice').value) || 0;
+    let message = `Below mentioned prices are the total price(s) inclusive of taxes:\n\n----------------------------------------------------------------------------------\n`;
+
+    visibleCards.forEach((card, idx) => {
+      const id = parseInt(card.id.replace('card-', ''));
+      const detail = list[id];
+      if (!detail) return;
+      message += `${idx + 1}. ✈️ ${detail.flightName} (${detail.flightLabel}) : ${detail.fromc} - ${detail.toc}
+Date: ${detail.date}
+Timing: ${detail.time}
+Duration: ${detail.duration}
+Price Per Person: ₹ ${detail.price - discount}`;
+      message += idx === visibleCards.length - 1
+        ? `\n----------------------------------------------------------------------------------\n`
+        : `\n-----------------------------------------\n`;
+    });
+
+    message += `\nNote: Airline ticket pricing is dynamic. Fares are valid as of now and might change at the time of issuance.\n`;
+    copyText(message);
+  }
+
+  /* ══════════════════════════════════════════════════
+     SELECT ALL FILTERED CARDS
+  ══════════════════════════════════════════════════ */
+  function toggleSelectAll() {
+    const btn = document.getElementById('selectAllBtn');
+    const isSelecting = btn.textContent === 'Select All';
+    const visibleCards = [...document.querySelectorAll('.flight-card')].filter(c => c.style.display !== 'none');
+    visibleCards.forEach(card => {
+      const cb = card.querySelector('input.details');
+      if (cb) cb.checked = isSelecting;
+    });
+    btn.textContent  = isSelecting ? 'Deselect All' : 'Select All';
+    btn.classList.toggle('deselect', isSelecting);
+  }
+
+  /* ══════════════════════════════════════════════════
+     FILTER FUNCTIONS
+  ══════════════════════════════════════════════════ */
+  function filterByAirline(val) {
+    document.querySelectorAll('.flight-card').forEach(card => {
+      const airline = card.dataset.airline || '';
+      card.style.display = !val || airline.toUpperCase().includes(val.toUpperCase()) ? '' : 'none';
+    });
+  }
+  function searchAllCards(val) {
+    document.querySelectorAll('.flight-card').forEach(card => {
+      card.style.display = !val || card.textContent.toUpperCase().includes(val.toUpperCase()) ? '' : 'none';
+    });
+  }
+  function filterByStops(val) {
+    document.querySelectorAll('.flight-card').forEach(card => {
+      card.style.display = val === 'All' || card.dataset.stops === val ? '' : 'none';
+    });
+  }
+
+  /* ══════════════════════════════════════════════════
+     QUOTE GENERATION  (identical message logic as original)
+  ══════════════════════════════════════════════════ */
+  function flightDetails2() {
+    var discount = document.getElementById('discountPrice').value || 0;
+    let message = `
+Below mentioned prices are the total price(s) inclusive of taxes:
+
+----------------------------------------------------------------------------------
+`;
+    var inputElements = document.getElementsByClassName('details');
+    let total = 0;
+    for (var i = 0; inputElements[i]; ++i) { if (inputElements[i].checked) total++; }
+    let j = 0;
+    for (var i = 0; inputElements[i]; ++i) {
+      if (inputElements[i].checked) {
+        let detail = list[inputElements[i].value];
+        message += `${j + 1}. ✈️ ${detail.flightName} (${detail.flightLabel}) : ${detail.fromc} - ${detail.toc}
+Date: ${detail.date}
+Timing: ${detail.time}
+Duration: ${detail.duration}
+Price Per Person: ₹ ${detail.price - discount}`;
+        message += j === total - 1 ? `\n----------------------------------------------------------------------------------\n` : `\n-----------------------------------------\n`;
+        if (j === total - 1) break;
+        j++;
+      }
+    }
+    message += `\nNote: Airline ticket pricing is dynamic. Fares are valid as of now and might change at the time of issuance.\n`;
+    copyText(message);
+  }
+
+  function flightDetails3() {
+    var discount = document.getElementById('discountPrice').value || 0;
+    let message = `\n                        \n`;
+    var inputElements = document.getElementsByClassName('details');
+    let total = 0;
+    for (var i = 0; inputElements[i]; ++i) { if (inputElements[i].checked) total++; }
+    let j = 0;
+    for (var i = 0; inputElements[i]; ++i) {
+      if (inputElements[i].checked) {
+        let detail = list[inputElements[i].value];
+        message += `${j + 1}. ✈️ ${detail.flightName} (${detail.flightLabel}) : ${detail.fromc} - ${detail.toc}
+Date: ${detail.date}
+Timing: ${detail.time}
+Duration: ${detail.duration}
+Price Per Person: ₹ ${detail.price - discount}`;
+        message += `\n\n`;
+        if (j === total - 1) break;
+        j++;
+      }
+    }
+    copyText(message);
+  }
+
+  /* ══════════════════════════════════════════════════
+     BHUMI HOLIDAYS — MULTI-FLIGHT COPY
+  ══════════════════════════════════════════════════ */
+  function flightDetailsBhumi() {
+    const discount      = parseInt(document.getElementById('discountPrice').value) || 0;
+    const inputElements = document.getElementsByClassName('details');
+
+    // Collect selected flight details
+    const selected = [];
+    for (var i = 0; inputElements[i]; ++i) {
+      if (inputElements[i].checked) {
+        selected.push(list[inputElements[i].value]);
+      }
+    }
+    if (!selected.length) return;
+
+    // Current timestamp for the note line
+    const now      = new Date();
+    const noteDate = [
+      String(now.getDate()).padStart(2, '0'),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      now.getFullYear()
+    ].join('/') + ', ' + [
+      String(now.getHours()).padStart(2, '0'),
+      String(now.getMinutes()).padStart(2, '0'),
+      String(now.getSeconds()).padStart(2, '0')
+    ].join(':');
+
+    // Duration formatter: "1h 15m" or "01:15" → "01:15 hrs"
+    function durToBhumi(d) {
+      if (!d) return '';
+      const hm = d.match(/(\d+)h\s*(\d+)m/);
+      if (hm) return String(hm[1]).padStart(2, '0') + ':' + String(hm[2]).padStart(2, '0') + ' hrs';
+      const colon = d.match(/^(\d{1,2}):(\d{2})$/);
+      if (colon) return String(colon[1]).padStart(2, '0') + ':' + colon[2] + ' hrs';
+      return d;
+    }
+
+    // Build header (once)
+    let message =
+`✈️ FLIGHT DETAILS - BOOKING CONFIRMATION
+==================================================
+BHUMI HOLIDAYS
+Your Trusted Travel Partner
+==================================================
+`;
+
+    // Build each flight block
+    selected.forEach((detail, idx) => {
+      const pricePP    = parseInt(detail.price) - discount;
+      const pax        = (parseInt(detail.adult) || 1) + (parseInt(detail.child) || 0);
+      const totalPrice = pricePP * pax;
+      const stopsLabel = detail.stops === 0 ? 'Non stop'
+                       : detail.stops + ' Stop' + (detail.stops > 1 ? 's' : '');
+      const isLast     = idx === selected.length - 1;
+
+      message +=
+`
+OPTION ${idx + 1}:
+------------------
+Airline: ${detail.flightName} (${detail.flightLabel})
+Route: ${detail.fromc} ➡️ ${detail.toc}
+Date: ${detail.date}
+Departure Time: ${detail.time}
+Flight Duration: ${durToBhumi(detail.duration)} (${stopsLabel})
+
+PRICING:
+Price per Person: ₹ ${pricePP.toLocaleString('en-IN')}
+Total price: ₹ ${totalPrice.toLocaleString('en-IN')}
+${isLast ? '==================================================' : '--------------------------------------------------'}
+`;
+    });
+
+    // Footer (once)
+    message +=
+`
+📝 Note: Airline ticket pricing is dynamic. Fares quoted are valid as of ${noteDate} and might change at the time of issuance.
+
+Thank you for choosing Bhumi Holidays! Safe travels! ✈️
+Contact: +91 8980345600 | support@bhumiholidays.com
+==================================================`;
+
+    copyText(message);
+  }
+
+  /* ══════════════════════════════════════════════════
+     UTILITIES
+  ══════════════════════════════════════════════════ */
+  function copyText(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToasts();
+  }
+
+  function showError(msg) {
+    const container = document.getElementById('flightCards');
+    container.innerHTML = `<div class="error-box"><i class="fa fa-exclamation-triangle"></i> ${msg}</div>`;
+  }
+
+  /* ══════════════════════════════════════════════════
+     SCROLL-TO-TOP VISIBILITY
+  ══════════════════════════════════════════════════ */
+  window.addEventListener('scroll', () => {
+    const btn = document.getElementById('scrollTopBtn');
+    if (window.scrollY > 300) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+  });
+
+  function showToasts() {
+    Toastify({
+      text: '✓ Copied to clipboard',
+      duration: 2500,
+      close: true,
+      gravity: 'top',
+      position: 'right',
+      stopOnFocus: true,
+      style: { background: 'linear-gradient(135deg, #2563EB 0%, #6366F1 100%)', borderRadius: '8px' }
+    }).showToast();
+  }
+
+  /* ══════════════════════════════════════════════════
+     TICKET MODAL LOGIC
+  ══════════════════════════════════════════════════ */
+  function openTicketModal(id) {
+    document.getElementById('ticketFlightId').value = id;
+    const dp = document.getElementById('discountPrice').value;
+    document.getElementById('ticketDiscount').value = dp || 0;
+    document.getElementById('ticketOverlay').classList.add('open');
+  }
+
+  function closeTicketModal() {
+    document.getElementById('ticketOverlay').classList.remove('open');
+  }
+
+  function getTicketPayload() {
+    const id = document.getElementById('ticketFlightId').value;
+    const detail = list[id];
+    if (!detail) return null;
+
+    const discount = parseFloat(document.getElementById('ticketDiscount').value) || 0;
+    const email = document.getElementById('ticketEmail').value.trim();
+
+    return {
+      flightName: detail.flightName,
+      flightLabel: detail.flightLabel,
+      route: detail.fromc + ' -> ' + detail.toc,
+      date: detail.date,
+      time: detail.time,
+      duration: detail.duration,
+      pricePerPerson: parseFloat(detail.price),
+      email: email,
+      includeCompanyDetails: document.getElementById('ticketIncludeCompany').checked,
+      showPricingInformation: document.getElementById('ticketShowPricing').checked,
+      discountAmount: discount,
+      totalPassengers: (parseInt(detail.adult) || 1) + (parseInt(detail.child) || 0) + (parseInt(detail.Infrants) || 0)
+    };
+  }
+
+  function prepareTicketRequest(btnId, origText) {
+    const payload = getTicketPayload();
+    if (!payload) return null;
+    const btn = document.getElementById(btnId);
+    btn.disabled = true;
+    btn.textContent = "Processing...";
+    return payload;
+  }
+
+  function endTicketRequest(btnId, origText) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+
+  function downloadTicketAction() {
+    const payload = prepareTicketRequest('ticketBtnDownload', 'Download PDF');
+    if (!payload) return;
+
+    fetch('http://localhost:8083/api/ticket/download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Failed to download");
+      return res.blob();
+    })
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `E-Ticket.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      
+      Toastify({ text: '✓ Ticket Downloaded', style: { background: '#10B981' } }).showToast();
+      closeTicketModal();
+    })
+    .catch(err => {
+      Toastify({ text: '❌ Failed to download ticket', style: { background: '#EF4444' } }).showToast();
+    })
+    .finally(() => endTicketRequest('ticketBtnDownload', 'Download PDF'));
+  }
+
+  function emailTicketAction() {
+    const payload = prepareTicketRequest('ticketBtnEmail', 'Email Ticket');
+    if (!payload) return;
+    
+    if (!payload.email) {
+        alert("Please enter an email address first.");
+        endTicketRequest('ticketBtnEmail', 'Email Ticket');
+        return;
+    }
+
+    fetch('http://localhost:8083/api/ticket/email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Failed to send email");
+      return res.json();
+    })
+    .then(data => {
+      Toastify({ text: '✓ Email sent successfully', style: { background: '#10B981' } }).showToast();
+      closeTicketModal();
+    })
+    .catch(err => {
+      Toastify({ text: '❌ Failed to send email', style: { background: '#EF4444' } }).showToast();
+    })
+    .finally(() => endTicketRequest('ticketBtnEmail', 'Email Ticket'));
+  }
+</script>
+
+<!-- Ticket Modal -->
+<div class="ticket-overlay" id="ticketOverlay">
+  <div class="ticket-modal">
+    <h3>Generate E-Ticket</h3>
+    <input type="hidden" id="ticketFlightId">
+    
+    <div class="form-group">
+      <label><input type="checkbox" id="ticketIncludeCompany" checked> Include Company Details (Bhumi Holidays)</label>
+    </div>
+    <div class="form-group">
+      <label><input type="checkbox" id="ticketShowPricing" checked onchange="document.getElementById('ticketAmtBlock').style.display = this.checked ? 'block' : 'none'"> Show Pricing Information</label>
+    </div>
+    <div class="form-group" id="ticketAmtBlock">
+      <label style="display:block; font-size: 0.8rem; margin-bottom: 4px;">Discount Amount (₹)</label>
+      <input type="number" id="ticketDiscount" value="0">
+    </div>
+    <div class="form-group">
+      <label style="display:block; font-size: 0.8rem; margin-bottom: 4px;">Email Address</label>
+      <input type="email" id="ticketEmail" placeholder="user@example.com">
+    </div>
+
+    <div class="ticket-modal-actions">
+      <button class="ticket-btn-cancel" onclick="closeTicketModal()">Cancel</button>
+      <button class="ticket-btn-down" id="ticketBtnDownload" onclick="downloadTicketAction()">Download PDF</button>
+      <button class="ticket-btn-email" id="ticketBtnEmail" onclick="emailTicketAction()">Email Ticket</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

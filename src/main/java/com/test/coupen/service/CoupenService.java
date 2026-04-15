@@ -28,10 +28,13 @@ public class CoupenService {
         List<RangeEntity> ranges = getRangesCreate(requestDto.getRangeDiscounts(), coupen);
         coupen.setCoupenCode(requestDto.getCoupenCode());
         coupen.setDiscountType(requestDto.getDiscountType());
-        if (Objects.equals(requestDto.getDiscountType(), DiscountType.FLAT)){
+        if (Objects.equals(requestDto.getDiscountType(), DiscountType.FLAT) || Objects.equals(requestDto.getDiscountType(), DiscountType.CONVENANCE_FEE)){
             coupen.setFixPercentage(requestDto.getFixPercentage());
             coupen.setMaxDiscount(requestDto.getMaxDiscount());
             coupen.setMinAmount(requestDto.getMinAmount());
+            if (Objects.equals(requestDto.getDiscountType(), DiscountType.CONVENANCE_FEE)) {
+                coupen.setConvenanceFee(requestDto.getConvenanceFee());
+            }
         }
         coupenRepository.save(coupen);
         if(Objects.equals(requestDto.getDiscountType(), DiscountType.RANGE)){
@@ -46,10 +49,13 @@ public class CoupenService {
         coupen.setCoupenId(coupenId);
         coupen.setCoupenCode(requestDto.getCoupenCode());
         coupen.setDiscountType(requestDto.getDiscountType());
-        if (Objects.equals(requestDto.getDiscountType(), DiscountType.FLAT)){
+        if (Objects.equals(requestDto.getDiscountType(), DiscountType.FLAT) || Objects.equals(requestDto.getDiscountType(), DiscountType.CONVENANCE_FEE)){
             coupen.setFixPercentage(requestDto.getFixPercentage());
             coupen.setMaxDiscount(requestDto.getMaxDiscount());
             coupen.setMinAmount(requestDto.getMinAmount());
+            if (Objects.equals(requestDto.getDiscountType(), DiscountType.CONVENANCE_FEE)) {
+                coupen.setConvenanceFee(requestDto.getConvenanceFee());
+            }
         }
         if(Objects.equals(requestDto.getDiscountType(), DiscountType.RANGE)){
             List<RangeEntity> list = requestDto.getRangeDiscounts().stream()

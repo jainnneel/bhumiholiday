@@ -28,6 +28,16 @@ public class CoupenEntity {
 
     private Integer minAmount;
 
+    private Integer convenanceFee;
+
+    public Integer getConvenanceFee() {
+        return convenanceFee;
+    }
+
+    public void setConvenanceFee(Integer convenanceFee) {
+        this.convenanceFee = convenanceFee;
+    }
+
     public Integer getMaxDiscount() {
         return maxDiscount;
     }

@@ -37,11 +37,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.postgresql:postgresql:42.7.2'
 
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
 	// https://mvnrepository.com/artifact/mysql/mysql-connector-java
 // https://mvnrepository.com/artifact/com.mysql/mysql-connector-j
 // https://mvnrepository.com/artifact/mysql/mysql-connector-java
 	implementation 'mysql:mysql-connector-java:8.0.33'
-	implementation 'org.projectlombok:lombok:1.18.36'
 	implementation 'org.springframework.kafka:spring-kafka'  // Use the latest version
 // https://mvnrepository.com/artifact/org.kie/kie-ci
 	implementation group: 'org.kie', name: 'kie-ci', version: '10.0.0'
@@ -50,6 +52,11 @@ dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	
+	// Email and PDF Generation
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.xhtmlrenderer:flying-saucer-pdf-openpdf:9.1.22'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

@@ -1,0 +1,1164 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+
+    <title>Document</title>
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        .results {
+            padding: 0px;
+        }
+
+        .results ul {
+            margin: 0;
+            padding: 0;
+        }
+
+        .results ul li {
+            list-style: none;
+            border-radius: 3px;
+            opacity: 0;
+            display: none;
+            padding: 8px 12px;
+            background-color: cornsilk;
+            transition: all .5s linear;
+        }
+
+        .show .results ul li {
+            opacity: 1;
+            display: block;
+        }
+
+        .show .results {
+            padding: 10px;
+        }
+
+        .results ul li:hover {
+            background: #ececec
+        }
+    </style>
+    <script>
+
+        let list = [];
+        let from;
+        let to;
+
+        function onsearch1() {
+            document.getElementById('isLoading').style.display = "block";
+            list = [];
+            document.getElementById('flightCode').value = '';
+            document.getElementById('NoStops').value = 'All';
+            
+            from = document.getElementById('search1').value;
+            to = document.getElementById('search2').value;
+            let date = document.getElementById('date').value;
+            let qnt = document.getElementById('qnt').value;
+
+            var e1 = document.getElementById("qnt").value;
+            var e2 = document.getElementById("child").value;
+            var e3 = document.getElementById("infrants").value;
+            // var text3 = e3.options[e3.selectedIndex].text;
+
+            let tbl = document.getElementById("flight");
+            tbl.innerHTML = "";
+            // console.log(date)
+            var requestOptions = {
+                method: 'GET',
+                redirect: 'follow'
+            };
+
+            let citys = ['Goa ( GOX )', 'Durgapur ( RDP )', 'Darbhanga ( DBR )', 'AgattiIsland ( AGX )', 'Ahmedabad ( AMD )', 'Aizawl ( AJL )', 'Akola ( AKD )', 'Along ( IXV )', 'Lucknow ( LKO )', 'Ludhiana ( LUH )', 'Bagdogra ( IXB )', 'Mangalore ( IXE )', 'Leh ( IXL )', 'Balurghat ( RGH )', 'Allahabad ( IXD )', 'Shillong ( SHL )', 'Bareli ( BEK )', 'Bellary ( BEP )', 'Bangalore ( BLR )', 'Bhatinda ( BUP )', 'Bhavnagar ( BHU )', 'Bhopal ( BHO )', 'Bhubaneswar ( BBI )', 'Bikaner ( BKB )', 'Bilaspur ( PAB )', 'Ranchi ( IXR )', 'Guwahati ( GAU )', 'CarNicobar ( CBD )', 'Chandigarh ( IXC )', 'Chennai ( MAA )', 'Mumbai ( BOM )', 'Aurangabad ( IXU )', 'Kochi ( COK )', 'CoochBehar ( COH )', 'Cuddapah ( CDP )', 'Udaipur ( UDR )', 'Goa ( GOI )', 'Daman ( NMB )', 'Daparizo ( DAE )', 'Darjeeling ( DAI )', 'DehraDun ( DED )', 'Deparizo ( DEP )', 'Indore ( IDR )', 'Dhanbad ( DBD )', 'Dibrugarh ( DIB )', 'Dimapur ( DMU )', 'Diu ( DIU )', 'Dharamsala ( DHM )', 'Nasik ( ISK )', 'Gaya ( GAY )', 'Gorakhpur ( GOP )', 'Jamnagar ( JGA )', 'Guna ( GUX )', 'Gwalior ( GWL )', 'Hissar ( HSS )', 'Hubli ( HBX )', 'Hyderabad ( HYD )', 'NewDelhi ( DEL )', 'Jabalpur ( JLR )', 'Jagdalpur ( JGB )', 'Jaisalmer ( JSA )', 'Jeypore ( PYB )', 'Jodhpur ( JDH )', 'Kailashahar ( IXH )', 'Kamalpur ( IXQ )', 'Kandla ( IXY )', 'Kanpur ( KNU )', 'Keshod ( IXK )', 'Khajuraho ( HJR )', 'Agra ( AGR )', 'Khowai ( IXN )', 'Kolhapur ( KLH )', 'Kota ( KTU )', 'Kozhikode ( CCJ )', 'BhuntarKullu. ( KUU )', 'Silchar ( IXS )', 'Lilabari ( IXI )', 'Pune ( PNQ )', 'Madurai ( IXM )', 'Malda ( LDA )', 'Mohanbari ( MOH )', 'Imphal ( IMF )', 'Muzaffarnagar ( MZA )', 'Muzaffarpur ( MZU )', 'Mysore ( MYQ )', 'Nanded ( NDC )', 'Kolkata ( CCU )', 'Neyveli ( NVY )', 'Osmanabad ( OMN )', 'Pantnagar ( PGH )', 'Pasighat ( IXT )', 'Pathankot ( IXP )', 'Patna ( PAT )', 'Coimbatore ( CJB )', 'Pondicherry ( PNY )', 'Porbandar ( PBD )', 'PortBlair ( IXZ )', 'Puttaparthi ( PUT )', 'Raipur ( RPR )', 'Amritsar ( ATQ )', 'Rajahmundry ( RJA )', 'Rajkot ( RAJ )', 'Rajouri ( RJI )', 'Ramagundam ( RMD )', 'Ratnagiri ( RTC )', 'Rewa ( REW )', 'Rourkela ( RRK )', 'Jorhat ( JRH )', 'Bhuj ( BHJ )', 'Rupsi ( RUP )', 'Salem ( SXV )', 'Tezpur ( TEZ )', 'Belgaum ( IXG )', 'Jaipur ( JAI )', 'Satna ( TNI )', 'Jammu ( IXJ )', 'Sholapur ( SSE )', 'Simla ( SLV )', 'Agartala ( IXA )', 'Jamshedpur ( IXW )', 'Nagpur ( NAG )', 'Srinagar ( SXR )', 'Surat ( STV )', 'Tezu ( TEI )', 'Thanjavur ( TJV )', 'Trivandrum ( TRV )', 'Tirupati ( TIR )', 'Trichy ( TRZ )', 'Tuticorin ( TCR )', 'Vadodara ( BDQ )', 'Varanasi ( VNS )', 'Vijayawada ( VGA )', 'Vishakhapatnam ( VTZ )', 'Warangal ( WGC )', 'Zero ( ZER )', 'Shirdi ( SAG )'];
+
+            // if (!citys.includes(from) || !citys.includes(to)) {
+            //     alert("selected city is not correct");
+            //     return;
+            // }
+
+            if (qnt == 0 || qnt > 9) {
+                alert("Not valid qnt " + qnt);
+                return;
+            }
+
+// let serverName = "localhost:8081";
+let serverName = "api.goflyhigh.in";
+
+            //https://www.cleartrip.com/flights/initiate-booking?from=AMD&to=DEL&depart_date=03/07/2022&return_date=&adults=1&childs=0&infants=0&class=Economy&out_fare_key=DC_dc2|ims_y|sms_y|fn_2142|supp_INDIGO|si-bc-v2-1436650a-25e0-4f2e-a319-4a174aa233e8|fk_retail_6E_2142_1656843000000_R0IP_true_&out_price=7056.0
+            let rowId = 0;
+            fetch("https://"+serverName+"/find/" + from + "/" + to + "/" + date + "/" + e1 + "/" + e2 + "/" + e3 +"/null", requestOptions)
+                .then(response => response.json())
+                .then(result => {
+                    // console.log(result)
+                    //'https://www.cleartrip.com/flights/initiate-booking?from='+obj.from+'&to='+obj.to+'&depart_date='+obj.date+'&return_date=&adults=1&childs=0&infants=0&class=Economy&uid=73Hoiho6oSbivGZ+8nmLEDKDOlRD9Ik4aQzcs/LJluA=&out_fare_key='+obj.fkkey+'&out_price='+obj.price+"&utm_source=kayak"
+                    result.forEach(obj => {
+                        list.push({
+                            flightName: obj.flightName,
+                            from: from,
+                            to: to,
+                            fromc: obj.from,
+                            toc: obj.to,
+                            date: obj.date,
+                            time: obj.fTime,
+                            duration: obj.duration,
+                            adult: e1,
+                            child: e2,
+                            Infrants: e3,
+                            price: obj.perPerson,
+                            sectorKey: obj.sectorKeys,
+                            stops: obj.stops,
+                            fromTime: obj.fromTime.replace(":", ""),
+                            toTime: obj.toTime.replace(":", "")
+                        });
+                        
+                        var row = tbl.insertRow(-1);  // -1 = append → preserves price ASC order from API
+                        row.setAttribute("id", rowId);
+                        // row.setAttribute("onclick",rowClick)
+                        var cell1 = row.insertCell(0);
+                        var cell2 = row.insertCell(1);
+                        var cell3 = row.insertCell(2);
+                        var cell4 = row.insertCell(3);
+                        var cell5 = row.insertCell(4);
+                        var cell6 = row.insertCell(5);
+                        var cell7 = row.insertCell(6);
+                        var cell8 = row.insertCell(7);
+                        var cell9 = row.insertCell(8);
+                        var cell10 = row.insertCell(9);
+                        var cell11 = row.insertCell(10);
+                        var cell12 = row.insertCell(11);
+                        // var cell13 = row.insertCell(12);
+                        // var cell13 = row.insertCell(12);
+                        // var cell14 = row.insertCell(13);
+                        // var cell15 = row.insertCell(14);
+                        // var cell16 = row.insertCell(15);                  
+                        
+                        // var cell8 = row.insertCell(7);
+                        // var cell9 = row.insertCell(8);
+                        // var cell10 = row.insertCell(9);
+                        //  var cell11 = row.insertCell(10);
+                        //  var cell12 = row.insertCell(11);
+
+                        var dc2val = obj.fkkey.substring(0, 5) + '2' + obj.fkkey.substring(6);
+
+                        // console.log(dc2val);
+                        // let oldurl = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&uid=73Hoiho6oSbivGZ+8nmLEDKDOlRD9Ik4aQzcs/LJluA=&out_fare_key=' + dc2val + '&out_price=' + obj.price + "&utm_source=GFS_Search";
+                        // let mold = 'https://www.cleartrip.com/m/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&out_fare_key=' + dc2val + '&out_price=' + obj.price + "&utm_source=wego";
+                        // let newurl = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&psid=ims_y&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + "&utm_source=wego";
+                        
+                        let uidMobile = '';
+                        let newuid = '';
+                        let mDiscount = ''; 
+                        let withUId = '';
+                        let discount0 = '';
+                        let intDiscount = '';
+                        let domDiscount = '';
+                        let ctf = '';
+                        let yatra = '';
+                        let skyscanner = '';
+                        let cleartrip = '';
+                        let google = '';
+                        let wigo  = '';
+                        let ixigo = '';
+                        let emt = '';
+                        let emtVip = '';
+
+                        var airlineCode = obj.airCode.slice(1, -1);
+                        var airlineCodeArray = airlineCode.split(", ");
+
+                        /* ── extract real flight numbers from sectorKey ──
+                           Format: "AI-810-AMD-DEL-1775313900|AI-1745-DEL-BOM-1775347200"
+                           Result: ["810", "1745"]                                        */
+                        const flightNums = (function(sectorKeys) {
+                            if (!sectorKeys || !sectorKeys.length) return [];
+                            return sectorKeys[0].split('|').map(seg => {
+                                const p = seg.split('-');
+                                return p.length >= 2 ? p[1] : '';
+                            });
+                        })(obj.sectorKeys);
+
+                        // console.log(from + "->" + from.substring(from.indexOf(',')+2,from.indexOf(',')+4) + "  " + to + "->" + to.substring(to.indexOf(',')+2,to.indexOf(',')+4))
+
+                        if(from.substring(from.indexOf(',')+2,from.indexOf(',')+4) === 'IN' && to.substring(to.indexOf(',')+2,to.indexOf(',')+4) === 'IN'){
+                            newuid = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + "&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=";
+                            uidMobile = 'https://www.cleartrip.com/m/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + "&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=";
+                            discount0 = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + "&utm_source=wego";
+                            domDiscount = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&uid=&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price;
+                            
+                            if(obj.stops === 0){
+                                yatra = 'https://secure.yatra.com/air-service/meta/v3/pricing?Adult='+e1+'&Child='+e2+'&Infant='+e3+'&PointOfSaleCountry=IN&DisplayedPrice='+obj.price+'&DisplayedPriceCurrency=INR&UserLanguage=en&UserCurrency=INR&TripType=OneWay&Slice1=1&Cabin1=Economy&Carrier1='+airlineCodeArray[0]+'&DepartureDate1='+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'&Origin1='+obj.from+'&Destination1='+obj.to+'&FlightNumber1='+(flightNums[0] || '')+'&MarketingCarrier1='+airlineCodeArray[0]+'&ValidatingCarrier1='+airlineCodeArray[0]+'&BookingCode1&ReferralId=GFS';
+                                ixigo = 'https://www.ixigo.com/api/v2/meta/partner/deeplink?Adult='+e1+'&Child='+e2+'&Infant='+e3+'&source=SearchAPI&UserLanguage=en&DisplayedPrice='+obj.price+'&TripType=OneWay&Slice1=1&Cabin1=Economy&Carrier1='+airlineCodeArray[0]+'&DepartureDate1='+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'&Origin1='+obj.from+'&Destination1='+obj.to+'&FlightNumber1='+(flightNums[0] || '')+'&apiKey=googleYHKQNLOAUM!2$&ReferralId=GOOG_GFS_712&gclid=ADowPOLXFAi-rT-N4Qf0PshNPXaULQzUbn7KYMfUeWw70ZWGoZOIBachHbJ5dEiyzTFUn0AoJ8B-CvRtHfMJg8hlwis3mS5RrH9kextLUUmtoviNS_Eh&gclsrc=gf';
+                            }else if(obj.stops === 1){
+                                var parts = obj.sectorKeys[0].split(/[ _\|]/).filter(part => part.length === 3);
+                                //console.log(airlineCodeArray)
+                                yatra = 'https://secure.yatra.com/air-service/meta/v3/pricing?Adult='+e1+'&Child='+e2+'&Infant='+e3+'&PointOfSaleCountry=IN&DisplayedPrice='+obj.price+'&DisplayedPriceCurrency=INR&UserLanguage=en&UserCurrency=INR&TripType=OneWay&Slice1=1,2&Cabin1=Economy&Carrier1='+airlineCodeArray[0]+'&DepartureDate1='+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'&Origin1='+parts[0]+'&Destination1='+parts[1]+'&FlightNumber1='+(flightNums[0] || '')+'&MarketingCarrier1='+airlineCodeArray[0]+'&ValidatingCarrier1='+airlineCodeArray[0]+'&BookingCode1&Cabin2=Economy&Carrier2='+airlineCodeArray[0]+'&DepartureDate2='+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'&Origin2='+parts[1]+'&Destination2='+parts[3]+'&FlightNumber2='+(flightNums[1] || '')+'&MarketingCarrier2='+airlineCodeArray[0]+'&ValidatingCarrier2='+airlineCodeArray[0]+'&BookingCode2&ReferralId=GFS';
+                                ixigo = 'https://www.ixigo.com/api/v2/meta/partner/deeplink?Adult='+e1+'&Child='+e2+'&Infant='+e3+'&source=SearchAPI&UserLanguage=en&DisplayedPrice='+obj.price+'&TripType=OneWay&Slice1=1,2&Cabin1=Economy&Carrier1='+airlineCodeArray[0]+'&DepartureDate1='+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'&Origin1='+obj.from+'&Destination1='+obj.to+'&FlightNumber1='+(flightNums[0] || '')+'&Carrier2='+airlineCodeArray[0]+'&DepartureDate2='+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'&Origin2='+parts[1]+'&Destination2='+parts[3]+'&FlightNumber2='+(flightNums[1] || '')+'&apiKey=googleYHKQNLOAUM!2$&ReferralId=GOOG_GFS_712&gclid=ADowPOLXFAi-rT-N4Qf0PshNPXaULQzUbn7KYMfUeWw70ZWGoZOIBachHbJ5dEiyzTFUn0AoJ8B-CvRtHfMJg8hlwis3mS5RrH9kextLUUmtoviNS_Eh&gclsrc=gf';
+                            }
+
+
+                            emt = 'https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult='+e1+'&Child='+e2+'&Infant='+e3+'&PointOfSaleCountry=IN&UserCurrency=INR&DisplayedPrice='+(parseInt(obj.price)-250)+'&DisplayedPriceCurrency=INR&UserLanguage=en&TripType=OneWay&Slice1=1&cc=&Cabin1=Economy&DepartureDate1='+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'&Origin1='+obj.from+'&Destination1='+obj.to+'&BookingCode1=&FlightNumber1='+(flightNums[0] || '')+'&Segment1=Cabin%3DEconomy,Carrier%3D'+airlineCodeArray[0]+',DepartureDate%3D'+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'T'+obj.fromTime.replace(":", "")+',Origin%3D'+obj.from+',Destination%3D'+obj.to+',FlightNumber%3D'+(flightNums[0] || '')+',ArrivalDate%3D'+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'T'+obj.toTime.replace(":", "")+',id%3D1,BookingCode%3D&ReferralId=GoogleEMT&domType=Any&gclid=ADowPOKJZ_avw0QhpyqbsmK4ZrOMJ-RialyYVyECaHK9aMBqsCBD5xGEzrSxCbT1vj7u5hl1KeLwsLqPtQERl53Il0wDnAqSNDqgmRwI4fdijyUEsbF3&gclsrc=gf';
+                            emtVip = 'https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult='+e1+'&Child='+e2+'&Infant='+e3+'&PointOfSaleCountry=IN&UserCurrency=INR&DisplayedPrice='+(parseInt(obj.price)-250)+'&DisplayedPriceCurrency=INR&UserLanguage=en&TripType=OneWay&Slice1=1&cc=&Cabin1=Economy&DepartureDate1='+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'&Origin1='+obj.from+'&Destination1='+obj.to+'&BookingCode1=&FlightNumber1='+(flightNums[0] || '')+'&Segment1=Cabin%3DEconomy,Carrier%3D'+airlineCodeArray[0]+',DepartureDate%3D'+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'T'+obj.fromTime.replace(":", "")+',Origin%3D'+obj.from+',Destination%3D'+obj.to+',FlightNumber%3D'+(flightNums[0] || '')+',ArrivalDate%3D'+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'T'+obj.toTime.replace(":", "")+',id%3D1,BookingCode%3D';
+                            
+                            skyscanner = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&psid=DC_Search-92eec72e-53e4-491e-b78f-3ffa0417950a&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + '&utm_source=skyscanner&utm_medium=meta&utm_campaign=skyscanner-core-dom_fl_in';
+                            cleartrip = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + '&uid=null';
+                            google = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&psid=sis_y_QU1EfERFTHwxNjk3MDQ5MDAwMDAwfDF8MHwwfEVDT05PTVl8SU58UlN8Ulp8fFJFR1VMQVJ8cHJvZHVjdGlvbl9JTl9zZWFyY2hfaW5kaWdvX25ld3NraWVzX25ld19YT35BTUReREVMXjZFXjE1OCtSMElQ&uid=73Hoiho6oSbivGZ+8nmLEDKDOlRD9Ik4aQzcs/LJluA=&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + '&utm_source=GFS_Search&utm_medium=CPA&utm_campaign=GFS_India';
+                        }else{
+                            newuid =     'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&fare_key=' + obj.fkkey + '&price=' + obj.price + "&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&intl=Y";
+                            uidMobile =  'https://www.cleartrip.com/m/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&fare_key=' + obj.fkkey + '&price=' + obj.price + "&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&intl=Y";
+                            skyscanner = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&psid=DC_Search-92eec72e-53e4-491e-b78f-3ffa0417950a&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + '&utm_source=skyscanner&utm_medium=meta&utm_campaign=skyscanner-core-dom_fl_in&intl=Y';
+                            cleartrip =  'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + '&uid=null&intl=Y';
+                            google =     'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&psid=sis_y_QU1EfERFTHwxNjk3MDQ5MDAwMDAwfDF8MHwwfEVDT05PTVl8SU58UlN8Ulp8fFJFR1VMQVJ8cHJvZHVjdGlvbl9JTl9zZWFyY2hfaW5kaWdvX25ld3NraWVzX25ld19YT35BTUReREVMXjZFXjE1OCtSMElQ&uid=73Hoiho6oSbivGZ+8nmLEDKDOlRD9Ik4aQzcs/LJluA=&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + '&utm_source=GFS_Search&utm_medium=CPA&utm_campaign=GFS_India&intl=Y';
+                        	ixigo = 'https://www.ixigo.com/api/v2/meta/partner/deeplink?Adult='+e1+'&Child='+e2+'&Infant='+e3+'&source=SearchAPI&UserLanguage=en&DisplayedPrice='+obj.price+'&TripType=OneWay&Slice1=1&Cabin1=Economy&Carrier1='+airlineCodeArray[0]+'&DepartureDate1='+obj.date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")+'&Origin1='+obj.from+'&Destination1='+obj.to+'&FlightNumber1='+(flightNums[0] || '')+'&apiKey=googleYHKQNLOAUM!2$&ReferralId=GOOG_GFS_712&gclid=ADowPOLXFAi-rT-N4Qf0PshNPXaULQzUbn7KYMfUeWw70ZWGoZOIBachHbJ5dEiyzTFUn0AoJ8B-CvRtHfMJg8hlwis3mS5RrH9kextLUUmtoviNS_Eh&gclsrc=gf&intl=Y';
+                        }
+                        
+                        intDiscount = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&fare_key=' + obj.fkkey + '&price=' + obj.price + "&uid=&intl=Y";
+                        mDiscount = 'https://www.cleartrip.com/m/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&fare_key=' + obj.fkkey + '&price=' + obj.price + "&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&intl=Y";
+                        withUId =   'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&fare_key=' + obj.fkkey + '&price=' + obj.price + "&uid=73Hoiho6oSbivGZ+8nmLEDKDOlRD9Ik4aQzcs/LJluA=&intl=Y&utm_source=GFS_SEARCH";
+                        ctf = 'https://www.cleartrip.com/m/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + "&uid=undefined"
+                        wigo =   'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&fare_key=' + obj.fkkey + '&price=' + obj.price + "&uid=iBYz4rpzYx1WFsIAHJYJC1rIXCA2ocA1kJ5jWOxyuO8=&intl=Y&utm_source=GFS_SEARCH";
+
+                        // let newurlMob = 'https://www.cleartrip.com/m/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&psid=ims_y&uid=bGjnkEekfgRma+IjXqjESfVTQ5cc3RYpCOiXHUTsdIQ=&out_fare_key=' + obj.fkkey + '&out_price=' + obj.price + "&utm_source=wego";
+                        // let dc2 = 'https://www.cleartrip.com/flights/initiate-booking?from=' + obj.from + '&to=' + obj.to + '&depart_date=' + obj.date + '&return_date=&adults=' + e1 + '&childs=' + e2 + '&infants=' + e3 + '&class=Economy&uid=73Hoiho6oSbivGZ+8nmLEDKDOlRD9Ik4aQzcs/LJluA=&out_fare_key=' + dc2val + '&out_price=' + obj.price + "&utm_source=kayak";
+
+                        // console.log('<button onclick="myFunctionOld('+oldurl+')">Copy</button>');
+                        cell1.innerHTML = obj.sectorKeys;
+                        cell2.innerHTML = obj.airCode;
+                        cell3.innerHTML = '<b>&nbsp' + obj.time + '&nbsp</b>';
+                        
+                        cell8.innerHTML = obj.perPerson;
+                        cell9.innerHTML = obj.price;
+
+                        var x = document.createElement("INPUT");
+                        x.setAttribute("type", "checkbox");
+                        x.setAttribute("name", "flight");
+                        x.setAttribute("value", rowId);
+                        x.setAttribute("class", "details");
+                        cell10.appendChild(x)
+                        rowId++;
+
+                        cell11.innerHTML = obj.stops;
+
+                        // var button1 = document.createElement("button");
+                        //     button1.innerText = "CopyOld";
+                        //     cell4.appendChild(button1);
+                        //     button1.addEventListener("click", () => {
+                        //             const textarea = document.createElement("textarea");
+                        //             textarea.value = oldurl;
+                        //             document.body.appendChild(textarea);
+                        //             textarea.select();
+                        //             document.execCommand("copy");
+                        //             document.body.removeChild(textarea);
+                        //     });
+
+                        // var button7 = document.createElement("button");
+                        // button7.innerText = "MOld";
+                        // cell4.appendChild(button7);
+                        // button7.addEventListener("click", () => {
+                        //         console.log(mold);
+                        //         const textarea = document.createElement("textarea");
+                        //         textarea.value = mold;
+                        //         document.body.appendChild(textarea);
+                        //         textarea.select();
+                        //         document.execCommand("copy");
+                        //         document.body.removeChild(textarea);
+                        // });
+
+
+                        // var button2 = document.createElement("button");
+                        // button2.innerText = "CopyNew";
+                        // cell5.appendChild(button2);
+                        // button2.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //         textarea.value = newurl;
+                        //         document.body.appendChild(textarea);
+                        //         textarea.select();
+                        //         document.execCommand("copy");
+                        //         document.body.removeChild(textarea);
+                        // });
+
+                        // var button3 = document.createElement("button");
+                        // button3.innerText = "Mobile";
+                        // cell6.appendChild(button3);
+                        // button3.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //         textarea.value = newurlMob;
+                        //         document.body.appendChild(textarea);
+                        //         textarea.select();
+                        //         document.execCommand("copy");
+                        //         document.body.removeChild(textarea);
+                        // });
+
+                        // var button4 = document.createElement("button");
+                        // button4.innerText = "DC2";
+                        // cell7.appendChild(button4);
+                        // button4.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //         textarea.value = dc2;
+                        //         document.body.appendChild(textarea);
+                        //         textarea.select();
+                        //         document.execCommand("copy");
+                        //         document.body.removeChild(textarea);
+                        // });
+
+                        // var button5 = document.createElement("button");
+                        // button5.innerText = "Zero";
+                        // cell4.appendChild(button5);
+                        // button5.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //     textarea.value = newuid;
+                        //     document.body.appendChild(textarea);
+                        //     textarea.select();
+                        //     document.execCommand("copy");
+                        //     document.body.removeChild(textarea);
+                        //     showToasts();
+                        // });
+
+                        // var button6 = document.createElement("button");
+                        // button6.innerText = "M-Zero";
+                        // cell5.appendChild(button6);
+                        // button6.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //     textarea.value = uidMobile;
+                        //     document.body.appendChild(textarea);
+                        //     textarea.select();
+                        //     document.execCommand("copy");
+                        //     document.body.removeChild(textarea);
+                        //     showToasts();
+                        // });
+
+                        // var button7 = document.createElement("button");
+                        // button7.innerText = "Discount+0";
+                        // cell6.appendChild(button7);
+                        // button7.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //     textarea.value = discount0;
+                        //     document.body.appendChild(textarea);
+                        //     textarea.select();
+                        //     document.execCommand("copy");
+                        //     document.body.removeChild(textarea);
+                        //     showToasts();
+                        // });
+
+                        // var button8 = document.createElement("button");
+                        // button8.innerText = "M-Discount";
+                        // cell7.appendChild(button8);
+                        // button8.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //     textarea.value = mDiscount;
+                        //     document.body.appendChild(textarea);
+                        //     textarea.select();
+                        //     document.execCommand("copy");
+                        //     document.body.removeChild(textarea);
+                        //     showToasts();
+                        // });
+
+                        // var button5 = document.createElement("button");
+                        // button5.innerText = "Discount";
+                        // cell4.appendChild(button5);
+                        // button5.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //     textarea.value = withUId;
+                        //     document.body.appendChild(textarea);
+                        //     textarea.select();
+                        //     document.execCommand("copy");
+                        //     document.body.removeChild(textarea);
+                        //     showToasts();
+                        // });
+                    
+                        // var button10 = document.createElement("button");
+                        // button10.innerText = "IntDiscount";
+                        // cell9.appendChild(button10);
+                        // button10.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //     textarea.value = intDiscount;
+                        //     document.body.appendChild(textarea);
+                        //     textarea.select();
+                        //     document.execCommand("copy");
+                        //     document.body.removeChild(textarea);
+                        //     showToasts();
+                        // });
+
+                        // var button11 = document.createElement("button");
+                        // button11.innerText = "DomDiscount";
+                        // cell10.appendChild(button11);
+                        // button11.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //     textarea.value = domDiscount;
+                        //     document.body.appendChild(textarea);
+                        //     textarea.select();
+                        //     document.execCommand("copy");
+                        //     document.body.removeChild(textarea);
+                        //     showToasts();
+                        // });
+
+                        // var button12 = document.createElement("button");
+                        // button12.innerText = "CTAPP";
+                        // cell11.appendChild(button12);
+                        // button12.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //     textarea.value = ctf;
+                        //     document.body.appendChild(textarea);
+                        //     textarea.select();
+                        //     document.execCommand("copy");
+                        //     document.body.removeChild(textarea);
+                        //     showToasts();
+                        // });
+
+                        var button5 = document.createElement("button");
+                        button5.innerText = "YATRA";
+                        cell4.appendChild(button5);
+                        button5.addEventListener("click", () => {
+                            const textarea = document.createElement("textarea");
+                            textarea.value = yatra;
+                            document.body.appendChild(textarea);
+                            textarea.select();
+                            document.execCommand("copy");
+                            document.body.removeChild(textarea);
+                            showToasts();
+                        });
+                        
+                        // var button7 = document.createElement("button");
+                        // button7.innerText = "Skyscanner";
+                        // cell6.appendChild(button7);
+                        // button7.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //     textarea.value = skyscanner;
+                        //     document.body.appendChild(textarea);
+                        //     textarea.select();
+                        //     document.execCommand("copy");
+                        //     document.body.removeChild(textarea);
+                        //     showToasts();
+                        // });
+                        
+                        // var button8 = document.createElement("button");
+                        // button8.innerText = "Cleartrip";
+                        // cell7.appendChild(button8);
+                        // button8.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //     textarea.value = cleartrip;
+                        //     document.body.appendChild(textarea);
+                        //     textarea.select();
+                        //     document.execCommand("copy");
+                        //     document.body.removeChild(textarea);
+                        //     showToasts();
+                        // });
+
+                        // var button9 = document.createElement("button");
+                        // button9.innerText = "Google";
+                        // cell8.appendChild(button9);
+                        // button9.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //     textarea.value = google;
+                        //     document.body.appendChild(textarea);
+                        //     textarea.select();
+                        //     document.execCommand("copy");
+                        //     document.body.removeChild(textarea);
+                        //     showToasts();
+                        // });
+
+                        // var button10 = document.createElement("button");
+                        // button10.innerText = "Wigo";
+                        // cell9.appendChild(button10);
+                        // button10.addEventListener("click", () => {
+                        //     const textarea = document.createElement("textarea");
+                        //     textarea.value = wigo;
+                        //     document.body.appendChild(textarea);
+                        //     textarea.select();
+                        //     document.execCommand("copy");
+                        //     document.body.removeChild(textarea);
+                        //     showToasts();
+                        // });
+
+                        var button6 = document.createElement("button");
+                        button6.innerText = "ixigo";
+                        cell5.appendChild(button6);
+                        button6.addEventListener("click", () => {
+                            const textarea = document.createElement("textarea");
+                            textarea.value = ixigo;
+                            document.body.appendChild(textarea);
+                            textarea.select();
+                            document.execCommand("copy");
+                            document.body.removeChild(textarea);
+                            showToasts();
+                        });
+
+                        var button7 = document.createElement("button");
+                        button7.innerText = "EMT";
+                        cell6.appendChild(button7);
+                        button7.addEventListener("click", () => {
+                            const textarea = document.createElement("textarea");
+                            textarea.value = emt;
+                            document.body.appendChild(textarea);
+                            textarea.select();
+                            document.execCommand("copy");
+                            document.body.removeChild(textarea);
+                            showToasts();
+                        });
+
+                        var button12 = document.createElement("button");
+                        button12.innerText = "EMPT-VIP";
+                        cell12.appendChild(button12);
+                        button12.addEventListener("click", () => {
+                            const textarea = document.createElement("textarea");
+                            textarea.value = emtVip;
+                            document.body.appendChild(textarea);
+                            textarea.select();
+                            document.execCommand("copy");
+                            document.body.removeChild(textarea);
+                            showToasts();
+                        });
+
+                        var button8 = document.createElement("button");
+                        button8.innerText = "Cleartrip";
+                        cell7.appendChild(button8);
+                        button8.addEventListener("click", () => {
+                            const textarea = document.createElement("textarea");
+                            textarea.value = cleartrip;
+                            document.body.appendChild(textarea);
+                            textarea.select();
+                            document.execCommand("copy");
+                            document.body.removeChild(textarea);
+                            showToasts();
+                        });
+                        
+                    })
+
+
+                    var row = tbl.insertRow(0);
+                    var cell1 = row.insertCell(0);
+                    var cell2 = row.insertCell(1);
+                    var cell3 = row.insertCell(2);
+                    var cell4 = row.insertCell(3);
+                    var cell5 = row.insertCell(4);
+                    var cell6 = row.insertCell(5);
+                    var cell7 = row.insertCell(6);
+                    var cell8 = row.insertCell(7);
+                    var cell9 = row.insertCell(8);
+                    var cell10 = row.insertCell(9);
+                    var cell11 = row.insertCell(10);
+                    var cell12 = row.insertCell(11);
+                    // var cell13 = row.insertCell(12);
+                    // var cell13 = row.insertCell(12);
+                    // var cell14 = row.insertCell(13);
+                    
+                    // var cell13 = row.insertCell(12);
+                    // var cell14 = row.insertCell(13);
+                    // var cell15 = row.insertCell(14);
+                    // var cell16 = row.insertCell(15);
+
+
+                    cell1.innerHTML = 'Sector Key';
+                    cell2.innerHTML = 'AirlineCode';
+                    cell3.innerHTML = 'Time';
+                    // cell4.innerHTML = 'Discount';
+                    cell4.innerHTML = 'Yatra';
+                    // cell6.innerHTML = 'Skyscnnaer';
+                    // cell7.innerHTML = 'Cleartrip';
+                    // cell8.innerHTML = 'Google';
+                    // cell9.innerHTML = 'Wigo';
+                    cell5.innerHTML = 'Ixigo';
+                    cell6.innerHTML = 'EMT';
+                    cell7.innerHTML = 'Cleartrip';
+
+                    cell8.innerHTML = 'Price Per Person';
+                    cell9.innerHTML = 'Total Price';
+                    cell10.innerHTML = 'Select Fight'
+                    cell11.innerHTML = 'stops'
+                    cell12.innerHTML = 'EMPT-VIP';
+
+                    // cell4.innerHTML = 'Zero Conv'
+                    // cell5.innerHTML = 'M-Zero conv'
+                    // cell6.innerHTML = 'Discount+0'
+                    // cell7.innerHTML = 'M-Discount'
+                    // cell8.innerHTML = 'Discount'
+                    // cell9.innerHTML = 'IntDiscount'
+                    // cell10.innerHTML = 'DomDiscount'
+                    // cell11.innerHTML = 'CTAPP'
+                    // cell12.innerHTML = 'Yatra'
+                    // cell13.innerHTML = 'Price Per Person';
+                    // cell14.innerHTML = 'Total Price';
+                    // cell15.innerHTML = 'Select Fight'
+                    // cell16.innerHTML = 'stops'
+
+                    console.log(list)
+
+                    document.getElementById('isLoading').style.display = "none";
+                })
+                .catch(error => {
+                    alert("No flight available")
+                    console.log(error)
+                });
+        }
+
+        function showToasts() {
+            Toastify({
+                text: "Content Copied",
+                duration: 3000,
+                destination: "https://github.com/apvarun/toastify-js",
+                newWindow: true,
+                close: true,
+                gravity: "top", // `top` or `bottom`
+                position: "left", // `left`, `center` or `right`
+                stopOnFocus: true, // Prevents dismissing of toast on hover
+                style: {
+                    background: "linear-gradient(to right, #00b09b, #96c93d)",
+                },
+                onClick: function () { } // Callback after click
+            }).showToast();
+        }
+
+        function flightDetails() {
+            var discount = document.getElementById('discountPrice').value;
+            let message = `Hello, Please find details with regards to your flights(s) query for:
+${from.substring(0, from.indexOf("("))}To ${to.substring(0, to.indexOf("("))}
+
+Below mentioned prices are the total price(s) inclusive of taxes:
+
+----------------------------------------------------------------------------------                           
+`;
+            var checkedValue = null;
+            var inputElements = document.getElementsByClassName('details');
+            console.log(discount)
+            let total = 0;
+            for (var i = 0; inputElements[i]; ++i) {
+                if (inputElements[i].checked) {
+                    total++;
+                }
+            }
+            let j = 0;
+            for (var i = 0; inputElements[i]; ++i) {
+                if (inputElements[i].checked) {
+                    detail = list[inputElements[i].value];
+                    message += `${(j + 1)}. ✈️ ${detail.flightName} : ${detail.fromc} - ${detail.toc}
+Date: ${detail.date}
+Timing: ${detail.time}
+Duration: ${detail.duration}
+Per Person Price: ₹ ${detail.price - discount}`
+
+                    if (j == total - 1) {
+                        message += `
+----------------------------------------------------------------------------------
+`;
+                        break;
+                    } else {
+                        message += `
+-----------------------------------------
+`;
+                    }
+                    j++;
+                }
+            }
+
+            message += `
+Note: Airline ticket pricing is dynamic. Fares are valid as of now and might change at the time of issuance.
+
+Thank you for choosing Bhumi Holidays.
+In case of any support :
+Sagar Jain
+☎️ Contact :  8980345600
+✉ Email : bhumiholiday@gmail.com
+`;
+
+            console.log(message)
+
+            const textarea = document.createElement("textarea");
+            textarea.value = message;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+            showToasts()
+        }
+
+        function flightDetails1() {
+            var discount = document.getElementById('discountPrice').value;
+            let message = `Hello, Please find details with regards to your flights(s) query for:
+${from.substring(0, from.indexOf("("))}To ${to.substring(0, to.indexOf("("))}
+
+Below mentioned prices are the total price(s) inclusive of taxes:
+
+----------------------------------------------------------------------------------                           
+`;
+            var checkedValue = null;
+            var inputElements = document.getElementsByClassName('details');
+            let total = 0;
+            for (var i = 0; inputElements[i]; ++i) {
+                if (inputElements[i].checked) {
+                    total++;
+                }
+            }
+            // console.log(total);
+            let j = 0;
+            for (var i = 0; inputElements[i]; ++i) {
+                if (inputElements[i].checked) {
+                    detail = list[inputElements[i].value];
+                    message += `${(j + 1)}. ✈️ ${detail.flightName} : ${detail.fromc} - ${detail.toc}
+Date: ${detail.date}
+Timing: ${detail.time}
+Duration: ${detail.duration}
+Price Per Person: ₹ ${detail.price - discount}`
+
+                    if (j == total - 1) {
+                        message += `
+----------------------------------------------------------------------------------
+`;
+                        break;
+                    } else {
+                        message += `
+-----------------------------------------
+`;
+                    }
+                    j++;
+                }
+            }
+
+            message += `
+Note: Airline ticket pricing is dynamic. Fares are valid as of now and might change at the time of issuance.
+
+`;
+
+            console.log(message)
+
+            const textarea = document.createElement("textarea");
+            textarea.value = message;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+            showToasts()
+        }
+
+        function flightDetails2(){
+            var discount = document.getElementById('discountPrice').value;
+            let message = `
+Below mentioned prices are the total price(s) inclusive of taxes:
+
+----------------------------------------------------------------------------------                           
+`;
+            var checkedValue = null;
+            var inputElements = document.getElementsByClassName('details');
+            let total = 0;
+            for (var i = 0; inputElements[i]; ++i) {
+                if (inputElements[i].checked) {
+                    total++;
+                }
+            }
+            // console.log(total);
+            let j = 0;
+            for (var i = 0; inputElements[i]; ++i) {
+                if (inputElements[i].checked) {
+                    detail = list[inputElements[i].value];
+                    message += `${(j + 1)}. ✈️ ${detail.flightName} : ${detail.fromc} - ${detail.toc}
+Date: ${detail.date}
+Timing: ${detail.time}
+Duration: ${detail.duration}
+Price Per Person: ₹ ${detail.price-discount}`
+
+                    if (j == total - 1) {
+                        message += `
+----------------------------------------------------------------------------------
+`;
+                        break;
+                    } else {
+                        message += `
+-----------------------------------------
+`;
+                    }
+                    j++;
+                }
+            }
+
+            message += `
+Note: Airline ticket pricing is dynamic. Fares are valid as of now and might change at the time of issuance.
+
+`;
+
+            console.log(message)
+
+            const textarea = document.createElement("textarea");
+            textarea.value = message;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+            showToasts()
+        }
+
+        function flightDetails3(){
+            var discount = document.getElementById('discountPrice').value;
+            let message = `
+                        
+`;
+            var checkedValue = null;
+            var inputElements = document.getElementsByClassName('details');
+            let total = 0;
+            for (var i = 0; inputElements[i]; ++i) {
+                if (inputElements[i].checked) {
+                    total++;
+                }
+            }
+            // console.log(total);
+            let j = 0;
+            for (var i = 0; inputElements[i]; ++i) {
+                if (inputElements[i].checked) {
+                    detail = list[inputElements[i].value];
+                    message += `${(j + 1)}. ✈️ ${detail.flightName} : ${detail.fromc} - ${detail.toc}
+Date: ${detail.date}
+Timing: ${detail.time}
+Duration: ${detail.duration}
+Price Per Person: ₹ ${detail.price-discount}`
+
+                    if (j == total - 1) {
+                        message += `
+
+`;
+                        break;
+                    } else {
+                        message += `
+
+`;
+                    }
+                    j++;
+                }
+            }
+
+            console.log(message)
+
+            const textarea = document.createElement("textarea");
+            textarea.value = message;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+            showToasts()
+        }
+
+
+        function flightSearchFun() {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById("flightCode");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("flight");
+            tr = table.getElementsByTagName("tr");
+            for (i = 1; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[1];
+                if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    }
+                    else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        function searchAllRows() {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById("flightDataSearch");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("flight");
+            tr = table.getElementsByTagName("tr");
+            for (i = 1; i < tr.length; i++) {
+                let found = false;
+                for(j = 0; j < tr[i].getElementsByTagName("td").length; j++){
+                    td = tr[i].getElementsByTagName("td")[j];
+                    if (td) {
+                        txtValue = td.textContent || td.innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                        }
+                    }
+                    
+                }
+                if(found){
+                    tr[i].style.display = "";
+                }else{
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+
+        function filterNumberStops(stops) {
+            var input = stops.options[stops.selectedIndex];
+            console.log(input.value)
+            // if(input.value === 'All'){
+            //     return;
+            // }
+            var filter, table, tr, td, i, txtValue;
+            filter = input.value.toUpperCase();
+            table = document.getElementById("flight");
+            tr = table.getElementsByTagName("tr");
+            for (i = 0; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[10];
+                if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1 || input.value === 'All') {
+                        tr[i].style.display = "";
+                    }
+                    else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        function updatePrice(){
+            var discount = document.getElementById('discountPrice').value;
+            // console.log(discount)
+            var input, filter, table, tr, td, i, txtValue;
+            table = document.getElementById("flight");
+            tr = table.getElementsByTagName("tr");
+            
+            for (i = 1; i < tr.length; i++) {
+                console.log(tr[i].id)
+                one_td = tr[i].getElementsByTagName("td")[9];
+                if (one_td) {
+                    console.log(parseInt(list[tr[i].id-1].price))
+                    one_td.innerHTML = (parseInt(list[tr[i].id-1].price)-discount);
+                }
+            }
+
+        }
+
+        function applycodeOnItenaryId(){
+            var id = document.getElementById('itenaryId').value;
+            fetch(`https://${serverName}/applycode/?id=${id}`)
+                .then(response => response.json())
+                .then(result => {
+                    const jsonResponse = JSON.parse(JSON.stringify(result)); // Parse the JSON string into a JavaScript object
+                    const formattedJson = JSON.stringify(jsonResponse, null, 2);
+                    console.log(formattedJson)
+                    alert(formattedJson);
+                });
+        }
+
+</script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="wrapper" id="wrapper1">
+            From : <input type="text" name="search" id="search1" placeholder="Type to search" autocomplete="chrome-off">
+            <div class="results" id="results1">
+                <ul>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <br>
+    <button style="display: inline-block; margin-left: 60px;" onclick="revese()"> <i style="font-size:15px" class="fa">&#xf07e;</i></button>
+    <br><br>
+    <div class="container">
+        <div class="wrapper" id="wrapper2">
+            To : <input type="text" name="search" id="search2" placeholder="Type to search" autocomplete="chrome-off">
+            <div class="results" id="results2">
+                <ul>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <br>
+    <label for="date">Date :</label>
+    <input type="date" id="date"><br><br>
+
+    <label for="qnt">Adult :</label>
+    <select name="Adult" id="qnt">
+        <option selected value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+    </select>
+
+    <label for="child">Child :</label>
+    <select name="Child" id="child">
+        <option selected value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+    </select>
+
+    <label for="Infrants">Infrants :</label>
+    <select name="Infrants" id="infrants">
+        <option selected value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+    </select>
+
+    <datalist id="city1"></datalist>
+    <datalist id="city1"></datalist>
+    <br><br>
+    <button onclick="onsearch1()">search</button>
+    <!-- <button onclick="flightDetails()">GetData</button> -->
+    <!-- <button onclick="flightDetails1()">GetData Without Bhumi </button> -->
+    <button onclick="flightDetails2()">Only Flight Info</button>
+    <button onclick="flightDetails3()">Flight Info</button>
+<!--     <label for="itenaryId">Itenary ID :</label>
+    <input type="text" id="itenaryId" placeholder="Itenary Id" size="10px">
+    <button onclick="applycodeOnItenaryId()">Apply Code</button>
+ -->    
+	</br>
+    </br>
+    <label for="airlineCode">AirlineCode :</label>
+    <input type="text" id="flightCode" onkeyup="flightSearchFun()" placeholder="Search AirlineCode" size="10px">
+    <label for="airlineCode">Search ANY :</label>
+    <input type="text" id="flightDataSearch" onkeyup="searchAllRows()" placeholder="Search ANY.." size="10px">
+    <label for="airlineCode">No Stops :</label>
+    <select id="NoStops" onchange="filterNumberStops(this)">
+        <option selected value="All">All</option>
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+    </select>
+    <label for="airlineCode">Discount: </label>
+    <input type="number" id="discountPrice"  placeholder="discount" size="10px">
+
+
+    <br />
+    <hr />
+    <br />
+
+    <table id="flight"></table>
+    
+    <p id="isLoading" style="display: none;">Fetching...</p>
+
+    <script>
+
+        // let serverName = "localhost:8081";
+        let serverName = "api.goflyhigh.in";
+
+        
+        const searchInput1 = document.getElementById('search1');
+        const searchInput2 = document.getElementById('search2');
+
+        const searchWrapper1 = document.querySelector('#wrapper1');
+        const searchWrapper2 = document.querySelector('#wrapper2');
+
+        const resultsWrapper1 = document.querySelector('#results1');
+        const resultsWrapper2 = document.querySelector('#results2');
+
+        searchInput1.addEventListener('keyup', () => {
+            renderResults1([])
+            let results = [];
+            let input = searchInput1.value;
+            if (input.length) {
+                fetch(`https://${serverName}/search/`+input)
+                .then(response => response.json())
+                .then(result => {
+                    result.forEach(citys => {
+                        results.push(citys.v)
+                    })
+                    renderResults1(results);
+                });
+                // results = searchable.filter((item) => {
+                //     return item.toLowerCase().includes(input.toLowerCase());
+                // });
+            }
+        });
+
+        function renderResults1(results) {
+            console.log(results)
+            if (!results.length) {
+                return searchWrapper1.classList.remove('show');
+            }
+
+            const content = results
+                .map((item) => {
+                    return `<li onclick = "setItem1('${item}')" aria-live="assertive" >${item}</li>`;
+                })
+                .join('');
+
+            searchWrapper1.classList.add('show');
+            resultsWrapper1.innerHTML = `<ul>${content}</ul>`;
+        }
+
+        function setItem1(item) {
+            searchInput1.value = item;
+            renderResults1([])
+        }
+
+        searchInput2.addEventListener('keyup', () => {
+            renderResults2([])
+            let results = [];
+            let input = searchInput2.value;
+            if (input.length) {
+                fetch(`https://${serverName}/search/`+input)
+                .then(response => response.json())
+                .then(result => {
+                    console.log(result);
+                    result.forEach(citys => {
+                        results.push(citys.v)
+                    })
+                    renderResults2(results);
+                });
+                // results = searchable.filter((item) => {
+                //     return item.toLowerCase().includes(input.toLowerCase());
+                // });
+            }
+        });
+
+        function renderResults2(results) {
+            if (!results.length) {
+                return searchWrapper2.classList.remove('show');
+            }
+
+            const content = results
+                .map((item) => {
+                    return `<li onclick = "setItem2('${item}')" aria-live="assertive">${item}</li>`;
+                })
+                .join('');
+
+            searchWrapper2.classList.add('show');
+            resultsWrapper2.innerHTML = `<ul>${content}</ul>`;
+        }
+
+        function setItem2(item) {
+            searchInput2.value = item;
+            renderResults2([])
+        }
+
+        // let city = ['Goa ( GOX )', 'Durgapur ( RDP )', 'Darbhanga ( DBR )', 'AgattiIsland ( AGX )', 'Ahmedabad ( AMD )', 'Aizawl ( AJL )', 'Akola ( AKD )', 'Along ( IXV )', 'Lucknow ( LKO )', 'Ludhiana ( LUH )', 'Bagdogra ( IXB )', 'Mangalore ( IXE )', 'Leh ( IXL )', 'Balurghat ( RGH )', 'Allahabad ( IXD )', 'Shillong ( SHL )', 'Bareli ( BEK )', 'Bellary ( BEP )', 'Bangalore ( BLR )', 'Bhatinda ( BUP )', 'Bhavnagar ( BHU )', 'Bhopal ( BHO )', 'Bhubaneswar ( BBI )', 'Bikaner ( BKB )', 'Bilaspur ( PAB )', 'Ranchi ( IXR )', 'Guwahati ( GAU )', 'CarNicobar ( CBD )', 'Chandigarh ( IXC )', 'Chennai ( MAA )', 'Mumbai ( BOM )', 'Aurangabad ( IXU )', 'Kochi ( COK )', 'CoochBehar ( COH )', 'Cuddapah ( CDP )', 'Udaipur ( UDR )', 'Goa ( GOI )', 'Daman ( NMB )', 'Daparizo ( DAE )', 'Darjeeling ( DAI )', 'DehraDun ( DED )', 'Deparizo ( DEP )', 'Indore ( IDR )', 'Dhanbad ( DBD )', 'Dibrugarh ( DIB )', 'Dimapur ( DMU )', 'Diu ( DIU )', 'Dharamsala ( DHM )', 'Nasik ( ISK )', 'Gaya ( GAY )', 'Gorakhpur ( GOP )', 'Jamnagar ( JGA )', 'Guna ( GUX )', 'Gwalior ( GWL )', 'Hissar ( HSS )', 'Hubli ( HBX )', 'Hyderabad ( HYD )', 'NewDelhi ( DEL )', 'Jabalpur ( JLR )', 'Jagdalpur ( JGB )', 'Jaisalmer ( JSA )', 'Jeypore ( PYB )', 'Jodhpur ( JDH )', 'Kailashahar ( IXH )', 'Kamalpur ( IXQ )', 'Kandla ( IXY )', 'Kanpur ( KNU )', 'Keshod ( IXK )', 'Khajuraho ( HJR )', 'Agra ( AGR )', 'Khowai ( IXN )', 'Kolhapur ( KLH )', 'Kota ( KTU )', 'Kozhikode ( CCJ )', 'BhuntarKullu. ( KUU )', 'Silchar ( IXS )', 'Lilabari ( IXI )', 'Pune ( PNQ )', 'Madurai ( IXM )', 'Malda ( LDA )', 'Mohanbari ( MOH )', 'Imphal ( IMF )', 'Muzaffarnagar ( MZA )', 'Muzaffarpur ( MZU )', 'Mysore ( MYQ )', 'Nanded ( NDC )', 'Kolkata ( CCU )', 'Neyveli ( NVY )', 'Osmanabad ( OMN )', 'Pantnagar ( PGH )', 'Pasighat ( IXT )', 'Pathankot ( IXP )', 'Patna ( PAT )', 'Coimbatore ( CJB )', 'Pondicherry ( PNY )', 'Porbandar ( PBD )', 'PortBlair ( IXZ )', 'Puttaparthi ( PUT )', 'Raipur ( RPR )', 'Amritsar ( ATQ )', 'Rajahmundry ( RJA )', 'Rajkot ( RAJ )', 'Rajouri ( RJI )', 'Ramagundam ( RMD )', 'Ratnagiri ( RTC )', 'Rewa ( REW )', 'Rourkela ( RRK )', 'Jorhat ( JRH )', 'Bhuj ( BHJ )', 'Rupsi ( RUP )', 'Salem ( SXV )', 'Tezpur ( TEZ )', 'Belgaum ( IXG )', 'Jaipur ( JAI )', 'Satna ( TNI )', 'Jammu ( IXJ )', 'Sholapur ( SSE )', 'Simla ( SLV )', 'Agartala ( IXA )', 'Jamshedpur ( IXW )', 'Nagpur ( NAG )', 'Srinagar ( SXR )', 'Surat ( STV )', 'Tezu ( TEI )', 'Thanjavur ( TJV )', 'Trivandrum ( TRV )', 'Tirupati ( TIR )', 'Trichy ( TRZ )', 'Tuticorin ( TCR )', 'Vadodara ( BDQ )', 'Varanasi ( VNS )', 'Vijayawada ( VGA )', 'Vishakhapatnam ( VTZ )', 'Warangal ( WGC )', 'Zero ( ZER )', 'Shirdi ( SAG )'];
+
+        function revese() {
+            let from = document.getElementById("search1").value;
+            let to = document.getElementById("search2").value;
+            document.getElementById("search1").value = to;
+            document.getElementById("search2").value = from;
+        }
+
+    </script>
+</body>
+
+
+</html>
