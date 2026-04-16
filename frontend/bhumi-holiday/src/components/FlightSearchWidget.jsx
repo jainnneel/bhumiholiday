@@ -6,7 +6,7 @@
  * Mobile layout:
  *   FROM  (full-width)
  *    ⇌   (centered swap button)
- *   TO    (full-width)
+ *   TO    (full-width)s
  *   DATE  (full-width)
  *   [ADULTS −n+]  [CHILDREN −n+]   (2 equal cols)
  *   coupon row
