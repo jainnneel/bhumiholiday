@@ -5,7 +5,7 @@ import { useAuth } from '../store/AuthContext'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import FlightSearchWidget from '../components/FlightSearchWidget'
-import logoUrl from '../assets/logo.jpeg'
+import BrandLogo from '../components/Logo'
 
 // ─── Animation helpers ────────────────────────────────────────────────────────
 const fadeUp = (delay = 0) => ({
@@ -149,7 +149,7 @@ export default function LandingPage({ darkMode, setDarkMode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950 overflow-x-hidden">
-      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} transparent />
+      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
 
       {/* ═══════════════════════════════════════════════════════════════════════
           HERO — gradient background + embedded search widget
@@ -515,9 +515,9 @@ export default function LandingPage({ darkMode, setDarkMode }) {
 
         <div className="relative max-w-2xl mx-auto px-4 text-center">
           <motion.div {...fadeUp()}>
-            <img src={logoUrl} alt="Bhumi Holidays"
-              className="h-16 w-16 rounded-2xl object-cover shadow-2xl mx-auto mb-7 ring-4 ring-white/20"
-              onError={(e) => { e.target.style.display = 'none' }} />
+            <div className="flex justify-center mb-7">
+              <BrandLogo size="lg" transparent showText={false} className="drop-shadow-2xl" />
+            </div>
 
             <h2 className="text-4xl md:text-5xl font-black text-white mb-5 leading-tight">
               Start saving on<br />flights today

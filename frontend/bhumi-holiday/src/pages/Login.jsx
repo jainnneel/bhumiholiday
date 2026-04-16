@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { useAuth } from '../store/AuthContext'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import logoUrl from '../assets/logo.jpeg'
+import BrandLogo from '../components/Logo'
 
 const STEP = { EMAIL: 'email', OTP: 'otp' }
 
@@ -44,7 +44,6 @@ export default function Login({ darkMode, setDarkMode }) {
 
     if (res.ok) {
       toast.success('OTP sent to your email!')
-      if (res.mockOtp) toast(`[DEV] OTP: ${res.mockOtp}`, { icon: '🔑', duration: 10000 })
       startTimer()
       setStep(STEP.OTP)
     } else {
@@ -121,9 +120,9 @@ export default function Login({ darkMode, setDarkMode }) {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-8"
           >
-            <img src={logoUrl} alt="Bhumi Holiday"
-              className="h-16 w-16 rounded-2xl object-cover shadow-lg mx-auto mb-4"
-              onError={(e) => { e.target.style.display = 'none' }} />
+            <div className="flex justify-center mb-4">
+              <BrandLogo size="lg" showText={false} />
+            </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back</h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Sign in to Bhumi Holiday</p>
           </motion.div>

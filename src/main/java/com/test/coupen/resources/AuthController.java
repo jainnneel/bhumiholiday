@@ -33,12 +33,9 @@ public class AuthController {
         try {
             String otp = authService.sendOtp(request.getEmail());
 
-            // Return the OTP in dev so the frontend can show "[DEV] OTP: xxxxxx"
-            // In production you would omit the `otp` field.
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "OTP sent to " + request.getEmail(),
-                "otp",     otp          // Remove this line before going to production!
+                "message", "OTP sent to " + request.getEmail()
             ));
         } catch (Exception ex) {
             return ResponseEntity.badRequest().body(Map.of(

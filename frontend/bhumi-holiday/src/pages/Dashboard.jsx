@@ -170,10 +170,10 @@ export default function Dashboard({ darkMode, setDarkMode }) {
                 Separate PNRs per person will be issued at the quoted fare. Contact us for a single PNR or international fare inquiries.
               </p>
               <div className="mt-4 pt-4 border-t border-white/20 space-y-2">
-                <a href="tel:+917878392006" className="flex items-center gap-2 text-white/80 text-xs hover:text-white">
-                  <i className="fas fa-phone w-3" />+91 78783 92006
+                <a href="tel:+918980345600" className="flex items-center gap-2 text-white/80 text-xs hover:text-white">
+                  <i className="fas fa-phone w-3" />+91 89803 45600
                 </a>
-                <a href="https://wa.me/917878392006" target="_blank" rel="noreferrer"
+                <a href="https://wa.me/918980345600" target="_blank" rel="noreferrer"
                   className="flex items-center gap-2 text-white/80 text-xs hover:text-white">
                   <i className="fab fa-whatsapp w-3" />WhatsApp Us
                 </a>

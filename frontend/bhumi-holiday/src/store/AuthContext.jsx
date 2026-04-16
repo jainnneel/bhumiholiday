@@ -53,17 +53,13 @@ export function AuthProvider({ children }) {
       const res = await authAPI.sendOtp(email)
       // Backend returns { success, message, otp } — otp is present for dev mode
       const data = res.data || {}
-      return {
-        ok:      true,
-        mockOtp: data.otp || null,   // returned by backend in dev
-      }
+      return { ok: true }
     } catch (err) {
       // Graceful local fallback when backend is unreachable
       if (import.meta.env.DEV) {
         const mockOtp = Math.floor(100000 + Math.random() * 900000).toString()
         sessionStorage.setItem('__mock_otp__' + email.toLowerCase(), mockOtp)
-        console.info('[DEV] Mock OTP for', email, '→', mockOtp)
-        return { ok: true, mockOtp }
+        return { ok: true }
       }
       return { ok: false, error: err?.response?.data?.message || 'Failed to send OTP' }
     }
@@ -110,6 +106,9 @@ export function AuthProvider({ children }) {
         email:     data.email     || profile.email,
         phone:     data.phone     || profile.phone     || '',
         company:   data.company   || profile.company   || '',
+        pan:       data.pan       || profile.pan       || '',
+        gst:       data.gst       || profile.gst       || '',
+        address:   data.address   || profile.address   || '',
       }
       setUser(userData)
 
@@ -151,6 +150,9 @@ export function AuthProvider({ children }) {
         email:     data.email     || email,
         phone:     data.phone     || '',
         company:   data.company   || '',
+        pan:       data.pan       || '',
+        gst:       data.gst       || '',
+        address:   data.address   || '',
       }
       setUser(userData)
 

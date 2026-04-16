@@ -23,6 +23,18 @@ public class UserEntity {
 
     private String company;
 
+    /** PAN card number (mandatory at signup, stored for GST invoicing) */
+    @Column(length = 10)
+    private String pan;
+
+    /** GST registration number */
+    @Column(length = 15)
+    private String gst;
+
+    /** Billing address */
+    @Column(columnDefinition = "TEXT")
+    private String address;
+
     /** Stores the coupon code generated for this user on signup */
     private String coupenCode;
 
@@ -48,6 +60,15 @@ public class UserEntity {
 
     public String getCompany() { return company; }
     public void setCompany(String company) { this.company = company; }
+
+    public String getPan() { return pan; }
+    public void setPan(String pan) { this.pan = pan != null ? pan.toUpperCase().trim() : null; }
+
+    public String getGst() { return gst; }
+    public void setGst(String gst) { this.gst = gst != null ? gst.toUpperCase().trim() : null; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
     public String getCoupenCode() { return coupenCode; }
     public void setCoupenCode(String coupenCode) { this.coupenCode = coupenCode; }

@@ -25,7 +25,7 @@ public class EmailService {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-        helper.setFrom("hello@bhumiholiday.com");
+        helper.setFrom("info@bhumiholidays.in");
         helper.setTo(toEmail);
         helper.setSubject("Your Flight E-Ticket - " + pnr);
 

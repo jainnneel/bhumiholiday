@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Base URL — uses Vite dev proxy in dev, direct in prod
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8084'
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.bhumiholidays.in'
 
 const http = axios.create({
   baseURL: BASE_URL,
@@ -29,6 +29,9 @@ export const authAPI = {
       email:     profile.email,
       phone:     profile.phone,
       company:   profile.company   || '',
+      pan:       profile.pan       || '',
+      gst:       profile.gst       || '',
+      address:   profile.address   || '',
     }),
 }
 

@@ -8,8 +8,9 @@ import Signup         from './pages/Signup'
 import Dashboard      from './pages/Dashboard'
 import FlightSearch   from './pages/FlightSearch'
 import CouponSuccess  from './pages/CouponSuccess'
-// import ContactPage    from './pages/ContactPage'
-import LoadingScreen  from './components/LoadingScreen'
+import ContactPage      from './pages/ContactPage'
+import LoadingScreen    from './components/LoadingScreen'
+import FloatingWhatsApp from './components/FloatingWhatsApp'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -40,6 +41,7 @@ export default function App() {
 
   return (
     <div className={darkMode ? 'dark' : ''}>
+      <FloatingWhatsApp />
       <Routes>
         <Route path="/" element={
           <LandingPage darkMode={darkMode} setDarkMode={setDarkMode} />

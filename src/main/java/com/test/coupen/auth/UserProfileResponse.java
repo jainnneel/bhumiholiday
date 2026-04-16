@@ -14,6 +14,9 @@ public class UserProfileResponse {
     private String email;
     private String phone;
     private String company;
+    private String pan;
+    private String gst;
+    private String address;
 
     /** The coupon linked to this user — null if none assigned yet */
     private CoupenEntity coupon;
@@ -29,6 +32,9 @@ public class UserProfileResponse {
         r.email     = user.getEmail();
         r.phone     = user.getPhone();
         r.company   = user.getCompany();
+        r.pan       = user.getPan();
+        r.gst       = user.getGst();
+        r.address   = user.getAddress();
         r.coupon    = coupon;
         return r;
     }
@@ -52,6 +58,15 @@ public class UserProfileResponse {
 
     public String getCompany() { return company; }
     public void setCompany(String company) { this.company = company; }
+
+    public String getPan() { return pan; }
+    public void setPan(String pan) { this.pan = pan; }
+
+    public String getGst() { return gst; }
+    public void setGst(String gst) { this.gst = gst; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
     public CoupenEntity getCoupon() { return coupon; }
     public void setCoupon(CoupenEntity coupon) { this.coupon = coupon; }

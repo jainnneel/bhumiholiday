@@ -11,6 +11,7 @@ import SkeletonCard from '../components/SkeletonCard'
 import { flightAPI } from '../services/api'
 import { normaliseFlights, applyFlightFilters } from '../utils/flightUtils'
 import { buildWhatsAppMessage, openWhatsApp } from '../utils/whatsappMessage'
+import { waLink, WA_MSG_INTERNATIONAL } from '../utils/constants'
 
 // ── Booking / WhatsApp modal ─────────────────────────────────────────────────
 function BookingModal({ flight, couponCode, onClose }) {
@@ -22,9 +23,9 @@ function BookingModal({ flight, couponCode, onClose }) {
   const [passengers, setPassengers] = useState(() =>
     Array.from({ length: total }, () => ({ first: '', last: '' }))
   )
-  const [email, setEmail]   = useState('')
+  const [email,  setEmail]  = useState('')
   const [mobile, setMobile] = useState('')
-  const [error, setError]   = useState('')
+  const [error,  setError]  = useState('')
 
   const updatePax = (i, field, val) => {
     const u = [...passengers]; u[i] = { ...u[i], [field]: val }; setPassengers(u)
@@ -38,6 +39,7 @@ function BookingModal({ flight, couponCode, onClose }) {
 
   const handleSubmit = () => {
     if (!email.trim() || !mobile.trim()) { setError('Please fill email and mobile'); return }
+    if (mobile.replace(/\D/g, '').length < 10) { setError('Enter a valid 10-digit mobile number'); return }
     for (let i = 0; i < total; i++) {
       if (!passengers[i]?.first.trim() || !passengers[i]?.last.trim()) {
         setError('Please fill all passenger names'); return
@@ -125,13 +127,13 @@ function BookingModal({ flight, couponCode, onClose }) {
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Mobile</label>
                 <input type="tel" value={mobile} onChange={(e) => setMobile(e.target.value)}
-                  placeholder="+91 98765 43210"
+                  placeholder="+91 89803 45600"
                   className="input-premium text-sm py-2 dark:bg-gray-600 dark:border-gray-500 dark:text-white" />
               </div>
             </div>
           </div>
 
-          {error && <p className="text-red-500 text-sm mb-3"><i className="fas fa-exclamation-circle mr-1" />{error}</p>}
+          {error && <p className="text-red-500 text-sm mb-3 flex items-center gap-1.5"><i className="fas fa-exclamation-circle" />{error}</p>}
 
           <div className="flex gap-2">
             <button onClick={onClose} className="btn-secondary flex-1 py-3 text-sm">Cancel</button>
@@ -388,6 +390,15 @@ export default function FlightSearch({ darkMode, setDarkMode }) {
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-2">
             <h1 className="text-2xl sm:text-3xl font-black text-white">Search Domestic Flights</h1>
             <p className="text-white/65 mt-1 text-xs sm:text-sm">Lowest fares · Live prices · No account required</p>
+            {/* International inquiry pill */}
+            <a
+              href={waLink(WA_MSG_INTERNATIONAL)}
+              target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 mt-3 bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-semibold px-4 py-1.5 rounded-full transition-all"
+            >
+              <i className="fab fa-whatsapp text-[#25d366] text-sm" />
+              Looking for International Flights? Inquire on WhatsApp →
+            </a>
           </motion.div>
         </div>
       </div>

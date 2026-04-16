@@ -41,7 +41,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <i className="fas fa-envelope text-brand-400 w-4" />
-                <a href="mailto:info@bhumiHoliday.com" className="hover:text-white transition-colors">info@bhumiholoday.com</a>
+                <a href="mailto:info@bhumiholidays.in" className="hover:text-white transition-colors">info@bhumiholoday.com</a>
               </li>
               <li className="flex items-center gap-2">
                 <i className="fab fa-whatsapp text-green-400 w-4" />

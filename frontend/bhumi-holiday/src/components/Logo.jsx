@@ -1,50 +1,81 @@
 /**
- * Logo component — tries logo.png first (Bhumi Holidays brand PNG),
- * falls back to logo.jpeg (old logo). Uses text fallback if both fail.
+ * BrandLogo — premium logo component for Bhumi Holiday.
  *
- * TO UPDATE LOGO:
- *   1. Save the Bhumi Holidays PNG as  src/assets/logo.png
- *   2. The new logo will appear automatically everywhere.
+ * Uses /logo.jpeg from the public folder (transparent background).
+ * Falls back to a clean "BH" SVG monogram if the image fails.
+ *
+ * Props:
+ *   transparent  {boolean} — true when over a dark hero (affects wordmark colour)
+ *   size         {'sm'|'md'|'lg'}
+ *   className    {string}
+ *   showText     {boolean} — show "Bhumi Holiday" wordmark beside logo
  */
 
 import { useState } from 'react'
 
-// Try PNG first — will 404 gracefully if not present, falling back to JPEG
-let logoPng = null
-let logoJpeg = null
+// Public-folder URL — Vite serves /public at the root, no hashing
+const PUBLIC_LOGO = '/logo.jpeg'
 
-try {
-  logoPng  = new URL('../assets/logo.png',  import.meta.url).href
-} catch { /* no PNG */ }
+const SIZE = {
+  sm: { img: 'w-9 h-9',   text: 'text-sm',   gap: 'gap-2'   },
+  md: { img: 'w-11 h-11', text: 'text-base',  gap: 'gap-2.5' },
+  lg: { img: 'w-14 h-14', text: 'text-lg',    gap: 'gap-3'   },
+}
 
-try {
-  logoJpeg = new URL('../assets/logo.jpeg', import.meta.url).href
-} catch { /* no JPEG */ }
+/** SVG monogram — shown when the image 404s */
+function Monogram({ size }) {
+  const s = SIZE[size]
+  return (
+    <div className={`${s.img} flex-shrink-0 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center shadow-md`}>
+      <svg viewBox="0 0 36 36" fill="none" className="w-5/6 h-5/6">
+        <text x="2"  y="26" fontFamily="Georgia, serif" fontWeight="bold" fontSize="16" fill="white">B</text>
+        <text x="17" y="26" fontFamily="Georgia, serif" fontWeight="bold" fontSize="16" fill="rgba(255,255,255,0.85)">H</text>
+        <path d="M6 30 L30 30" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" strokeLinecap="round"/>
+      </svg>
+    </div>
+  )
+}
 
-// Vite static imports (handles hashing + bundling)
-import logoJpegSrc from '../assets/logo.jpeg'
+export default function BrandLogo({
+  transparent = false,
+  size        = 'md',
+  className   = '',
+  showText    = true,
+}) {
+  const [imgError, setImgError] = useState(false)
+  const s = SIZE[size]
 
-export default function Logo({ className = '', alt = 'Bhumi Holidays', style = {} }) {
-  const [src, setSrc]   = useState('/logo.png')   // tries public/logo.png first
-  const [tried, setTried] = useState(0)
-
-  const fallbacks = [logoJpegSrc]
-
-  const handleError = () => {
-    if (tried < fallbacks.length) {
-      setSrc(fallbacks[tried])
-      setTried(tried + 1)
-    }
-    // else: completely broken — show nothing (parent wraps with text fallback)
-  }
+  const wordmarkCol = transparent ? 'text-white'      : 'text-gray-900 dark:text-white'
 
   return (
-    <img
-      src={src}
-      alt={alt}
-      className={className}
-      style={style}
-      onError={handleError}
-    />
+    <div className={`flex items-center ${s.gap} group ${className}`}>
+
+      {/* ── Logo image (no background box — transparent PNG/JPEG) ── */}
+      {imgError ? (
+        <div className="flex-shrink-0 group-hover:scale-105 transition-transform">
+          <Monogram size={size} />
+        </div>
+      ) : (
+        <img
+          src={PUBLIC_LOGO}
+          alt="Bhumi Holiday"
+          onError={() => setImgError(true)}
+          className={`
+            ${s.img} flex-shrink-0 object-contain
+            group-hover:scale-105 transition-transform duration-300
+            drop-shadow-sm
+          `}
+        />
+      )}
+
+      {/* ── Wordmark ── */}
+      {showText && (
+        <div className="min-w-0 leading-none">
+          <span className={`font-extrabold tracking-tight block truncate ${s.text} ${wordmarkCol}`}>
+            Bhumi Holiday
+          </span>
+        </div>
+      )}
+    </div>
   )
 }

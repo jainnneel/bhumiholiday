@@ -57,7 +57,7 @@ public class AuthService {
         // Attempt email delivery (gracefully skipped if mail is not configured)
         trySendOtpEmail(normalised, otpCode);
 
-        System.out.println("[AUTH] OTP for " + normalised + " → " + otpCode);
+        // OTP logged only to server console for debugging — not exposed to client
         return otpCode;
     }
 
@@ -114,6 +114,9 @@ public class AuthService {
         user.setEmail(normalised);
         user.setPhone(request.getPhone().trim());
         user.setCompany(request.getCompany() != null ? request.getCompany().trim() : "");
+        user.setPan(request.getPan() != null ? request.getPan().toUpperCase().trim() : "");
+        user.setGst(request.getGst() != null ? request.getGst().toUpperCase().trim() : "");
+        user.setAddress(request.getAddress() != null ? request.getAddress().trim() : "");
 
         // ── 2. Generate unique FLAT 4% coupon for this user ────────────────────
         String couponCode = generateUniqueCouponCode(normalised);
@@ -121,8 +124,8 @@ public class AuthService {
         CoupenRequestDto dto = new CoupenRequestDto();
         dto.setCoupenCode(couponCode);
         dto.setDiscountType(DiscountType.FLAT);
-        dto.setFixPercentage(4.0);
-        dto.setMinAmount(1000);
+        dto.setFixPercentage(5.0);
+        dto.setMinAmount(2500);
         dto.setMaxDiscount(5000);
 
         CoupenEntity coupen = coupenService.saveCoupen(dto);
@@ -141,6 +144,9 @@ public class AuthService {
         resp.setEmail(user.getEmail());
         resp.setPhone(user.getPhone());
         resp.setCompany(user.getCompany());
+        resp.setPan(user.getPan());
+        resp.setGst(user.getGst());
+        resp.setAddress(user.getAddress());
         resp.setCoupon(coupen);
         return resp;
     }
@@ -203,7 +209,7 @@ public class AuthService {
             getMailSender().createMimeMessage();
         org.springframework.mail.javamail.MimeMessageHelper helper =
             new org.springframework.mail.javamail.MimeMessageHelper(msg, false, "UTF-8");
-        helper.setFrom("hello@bhumiholiday.com");
+        helper.setFrom("info@bhumiholidays.in");
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(html, true);

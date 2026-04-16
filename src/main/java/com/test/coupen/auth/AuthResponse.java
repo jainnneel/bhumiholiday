@@ -14,6 +14,9 @@ public class AuthResponse {
     private String email;
     private String phone;
     private String company;
+    private String pan;
+    private String gst;
+    private String address;
 
     // coupon (populated after signup)
     private CoupenEntity coupon;
@@ -59,6 +62,15 @@ public class AuthResponse {
 
     public String getCompany() { return company; }
     public void setCompany(String company) { this.company = company; }
+
+    public String getPan() { return pan; }
+    public void setPan(String pan) { this.pan = pan; }
+
+    public String getGst() { return gst; }
+    public void setGst(String gst) { this.gst = gst; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
     public CoupenEntity getCoupon() { return coupon; }
     public void setCoupon(CoupenEntity coupon) { this.coupon = coupon; }
