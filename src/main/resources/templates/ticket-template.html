@@ -4,82 +4,281 @@
     <meta charset="UTF-8"/>
     <title>E-Ticket</title>
     <style>
-        body { font-family: Helvetica, Arial, sans-serif; color: #333; font-size: 14px; margin: 0; padding: 20px; }
-        .header { border-bottom: 2px solid #2563EB; padding-bottom: 10px; margin-bottom: 20px; position: relative; }
-        .header h1 { color: #1D4ED8; margin: 0; font-size: 24px; text-transform: uppercase; }
-        .header p { color: #64748B; margin: 5px 0 0; font-size: 12px; }
-        .pnr-box { position: absolute; right: 0; top: 0; background: #EEF2FF; border: 1px solid #C7D2FE; padding: 10px; border-radius: 4px; font-weight: bold; font-size: 16px; color: #4338CA; }
-        
-        .section { margin-bottom: 20px; }
-        .section-title { background: #F1F5F9; border-left: 4px solid #2563EB; padding: 5px 10px; font-weight: bold; margin-bottom: 10px; color: #1E293B; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #E2E8F0; padding: 8px 12px; text-align: left; }
-        th { background: #F8FAFC; color: #475569; font-weight: bold; font-size: 12px; text-transform: uppercase; }
-        
-        .company-details { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #CBD5E1; font-size: 12px; color: #64748B; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            color: #334155;
+            font-size: 13px;
+            padding: 24px 28px;
+            background: #ffffff;
+        }
+
+        /* ── Header ── */
+        .title { font-size: 30px; font-weight: bold; color: #1e293b; margin-bottom: 4px; }
+        .company-name { color: #1D4ED8; font-size: 15px; font-weight: bold; margin-bottom: 4px; }
+        .company-info { color: #64748b; font-size: 11px; line-height: 1.8; }
+        .divider { border: none; border-top: 2px dashed #94a3b8; margin: 16px 0; }
+
+        /* ── Booking Summary Table ── */
+        .booking-table { width: 100%; border-collapse: collapse; margin-bottom: 22px; }
+        .booking-table th {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: bold;
+            color: #475569;
+        }
+        .booking-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #1e293b;
+        }
+        .badge-confirmed {
+            background: #f97316;
+            color: #ffffff;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Section Header ── */
+        .section-header-row { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .section-header-row td { padding: 0; vertical-align: middle; }
+        .section-title {
+            color: #1D4ED8;
+            font-size: 14px;
+            font-weight: bold;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+        .pnr-badge {
+            background: #f97316;
+            color: #ffffff;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Flight Info ── */
+        .flight-info-table { width: 100%; border-collapse: collapse; margin-bottom: 22px; }
+        .flight-info-table td { vertical-align: top; padding: 4px 4px; }
+        .airline-name  { color: #1D4ED8; font-weight: bold; font-size: 13px; }
+        .flight-num    { color: #64748b; font-size: 11px; margin-top: 2px; }
+        .flight-class  { color: #64748b; font-size: 11px; margin-top: 2px; }
+        .time-big      { font-size: 20px; font-weight: bold; color: #1e293b; }
+        .date-small    { font-size: 11px; color: #64748b; margin-top: 2px; }
+        .city-name     { color: #1D4ED8; font-weight: bold; font-size: 13px; margin-top: 3px; }
+        .dur-label     { font-size: 11px; color: #64748b; }
+        .dur-arrow     { font-size: 20px; color: #64748b; }
+
+        /* ── Section Labels ── */
+        .section-label {
+            color: #1D4ED8;
+            font-size: 13px;
+            font-weight: bold;
+            background: #EFF6FF;
+            padding: 7px 10px;
+            margin-bottom: 8px;
+            border-left: 3px solid #2563EB;
+        }
+
+        /* ── Data Tables ── */
+        .data-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .data-table th {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 8px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #475569;
+            text-align: left;
+        }
+        .data-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 10px;
+            font-size: 12px;
+            color: #1e293b;
+        }
+        .data-table tr.alt td { background: #f8fafc; }
+        .total-row td { font-weight: bold; color: #059669; background: #f0fdf4; }
+
+        /* ── Important Info ── */
+        .info-title {
+            color: #1D4ED8;
+            font-size: 13px;
+            font-weight: bold;
+            background: #EFF6FF;
+            padding: 7px 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #2563EB;
+        }
+        .info-item { font-size: 11px; color: #475569; margin: 6px 0 6px 14px; line-height: 1.5; }
+
+        /* ── Footer colour bar ── */
+        .footer-bar { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        .footer-bar td { height: 7px; padding: 0; }
+        .bar-orange { background: #f97316; width: 25%; }
+        .bar-green  { background: #22c55e; width: 25%; }
+        .bar-blue   { background: #3b82f6; width: 25%; }
+        .bar-dark   { background: #1e293b; width: 25%; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Flight E-Ticket</h1>
-        <p>Generated on <span th:text="${generatedAt}"></span></p>
-        <div class="pnr-box">PNR: <span th:text="${pnr}"></span></div>
-    </div>
 
-    <!-- Company Details Optional -->
-    <div th:if="${ticket.includeCompanyDetails}" class="section">
-        <div class="section-title">Issued By: Bhumi Holidays</div>
-        <p style="margin: 5px 0;">Contact: +91 8980345600 | support@bhumiholidays.com</p>
-    </div>
+    <!-- Header -->
+    <table style="width:100%;border-collapse:collapse;margin-bottom:6px;">
+        <tr>
+            <td style="vertical-align:middle;width:110px;">
+                <img th:src="${ticket.logoUrl}" src="" alt="Bhumi Holidays"
+                     style="height:60px;width:auto;display:block;" />
+            </td>
+            <td style="vertical-align:middle;padding-left:14px;">
+                <div class="title">E-Ticket</div>
+                <div class="company-name">BHUMI HOLIDAYS</div>
+                <div class="company-info">
+                    Email: BHUMIHOLIDAY@GMAIL.COM<br/>
+                    Phone: 8980345600<br/>
+                    Address: NR VIPUL DUDHIYA NAVRANGPURA AHMEDABAD, Ahmadabad, Gujarat
+                </div>
+            </td>
+        </tr>
+    </table>
 
-    <div class="section">
-        <div class="section-title">Flight Itinerary</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Airline</th>
-                    <th>Flight No</th>
-                    <th>Route</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Duration</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td th:text="${ticket.flightName}"></td>
-                    <td th:text="${ticket.flightLabel}"></td>
-                    <td th:text="${ticket.route}"></td>
-                    <td th:text="${ticket.date}"></td>
-                    <td th:text="${ticket.time}"></td>
-                    <td th:text="${ticket.duration}"></td>
-                </tr>
-            </tbody>
+    <hr class="divider"/>
+
+    <!-- Booking Summary -->
+    <table class="booking-table">
+        <tr>
+            <th>Booking Time</th>
+            <th>Booking ID</th>
+            <th>Booking Status</th>
+        </tr>
+        <tr>
+            <td th:text="${generatedAt}">—</td>
+            <td th:text="${pnr}">—</td>
+            <td><span class="badge-confirmed">CONFIRMED</span></td>
+        </tr>
+    </table>
+
+    <!-- Onward Journey header -->
+    <table class="section-header-row">
+        <tr>
+            <td style="width:70%;">
+                <div class="section-title">Onward Journey</div>
+            </td>
+            <td style="width:30%; text-align:right; padding-bottom:8px; vertical-align:bottom;">
+                <span class="pnr-badge">PNR:&nbsp;<span th:text="${pnr}">—</span></span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Flight Details row -->
+    <table class="flight-info-table">
+        <tr>
+            <!-- Airline -->
+            <td style="width:20%; vertical-align:top;">
+                <div class="airline-name" th:text="${ticket.flightName}">Airline</div>
+                <div class="flight-num"   th:text="${ticket.flightLabel}">Flight</div>
+                <div class="flight-class">Economy</div>
+            </td>
+
+            <!-- Departure -->
+            <td style="width:30%; vertical-align:top;">
+                <div class="time-big"  th:text="${ticket.time}">00:00</div>
+                <div class="date-small" th:text="${ticket.date}">—</div>
+                <div class="city-name">
+                    <span th:if="${ticket.fromCity != null and !#strings.isEmpty(ticket.fromCity)}"
+                          th:text="${ticket.fromCity + (ticket.fromIata != null and !#strings.isEmpty(ticket.fromIata) ? ' (' + ticket.fromIata + ')' : '')}"></span>
+                    <span th:unless="${ticket.fromCity != null and !#strings.isEmpty(ticket.fromCity)}"
+                          th:text="${ticket.route}"></span>
+                </div>
+            </td>
+
+            <!-- Duration & arrow -->
+            <td style="width:18%; text-align:center; vertical-align:middle; padding-top:6px;">
+                <div class="dur-label" th:text="${ticket.duration}">—</div>
+                <div class="dur-arrow">&#8594;</div>
+            </td>
+
+            <!-- Arrival -->
+            <td style="width:32%; vertical-align:top; text-align:right;">
+                <div class="date-small" th:text="${ticket.date}">—</div>
+                <div class="time-big"
+                     th:text="${ticket.arrivalTime != null and !#strings.isEmpty(ticket.arrivalTime) ? ticket.arrivalTime : '—'}">—</div>
+                <div class="city-name"
+                     th:if="${ticket.toCity != null and !#strings.isEmpty(ticket.toCity)}"
+                     th:text="${ticket.toCity + (ticket.toIata != null and !#strings.isEmpty(ticket.toIata) ? ' (' + ticket.toIata + ')' : '')}"></div>
+                <div class="city-name"
+                     th:unless="${ticket.toCity != null and !#strings.isEmpty(ticket.toCity)}">&nbsp;</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Passenger Details -->
+    <div class="section-label">Passenger Details (Onward)</div>
+    <table class="data-table">
+        <tr>
+            <th>Passenger Name</th>
+            <th>Ticket No</th>
+            <th>Baggage (Check-in / Cabin)</th>
+        </tr>
+        <tr th:each="row, iter : ${passengerRows}" th:class="${iter.odd} ? 'alt' : ''">
+            <td th:text="${row}">—</td>
+            <td th:text="${pnr + (iter.index + 1)}">—</td>
+            <td>15 kg / 7 Kg</td>
+        </tr>
+    </table>
+
+    <!-- Payment Summary (optional) -->
+    <div th:if="${ticket.showPricingInformation}">
+        <div class="section-label">Payment Summary</div>
+        <table class="data-table">
+            <tr>
+                <th style="width:60%;">Description</th>
+                <th>Amount</th>
+            </tr>
+            <tr>
+                <td>Total Passengers</td>
+                <td th:text="${ticket.totalPassengers}">1</td>
+            </tr>
+            <tr class="alt">
+                <td>Price per Passenger</td>
+                <td>&#8377;&nbsp;<span th:text="${#numbers.formatDecimal(pricePP, 0, 'COMMA', 2, 'POINT')}">0.00</span></td>
+            </tr>
+            <tr class="total-row">
+                <td>Total Amount</td>
+                <td>&#8377;&nbsp;<span th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 2, 'POINT')}">0.00</span></td>
+            </tr>
         </table>
     </div>
 
-    <div class="section" th:if="${ticket.showPricingInformation}">
-        <div class="section-title">Payment Summary</div>
-        <table>
-            <tr>
-                <th style="width: 70%">Total Passengers</th>
-                <td th:text="${ticket.totalPassengers}"></td>
-            </tr>
-            <tr>
-                <th>Price per Passenger</th>
-                <td>Rs. <span th:text="${#numbers.formatDecimal(pricePP, 0, 'COMMA', 2, 'POINT')}"></span></td>
-            </tr>
-            <tr>
-                <th>Total Paid Amount</th>
-                <td style="font-weight: bold; color: #10B981;">Rs. <span th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 2, 'POINT')}"></span></td>
-            </tr>
-        </table>
-    </div>
+    <!-- Important Information -->
+    <div class="info-title">Important Information</div>
+    <div class="info-item">&#8226;&nbsp;This ticket is non-refundable and non-changeable.</div>
+    <div class="info-item">&#8226;&nbsp;Please use your Airline PNR for all correspondence regarding this booking with the airline.</div>
+    <div class="info-item">&#8226;&nbsp;Ensure you carry a valid photo identification proof such as a Driver's License, Aadhar Card, or any other government-issued photo ID.</div>
+    <div class="info-item">&#8226;&nbsp;Kindly double-check the terminal information, as it may have been updated prior to departure.</div>
+    <div class="info-item">&#8226;&nbsp;We advise you to arrive at the airport at least 3 hours before your scheduled departure time. Check-in counters generally close 60 minutes before departure.</div>
+    <div class="info-item">&#8226;&nbsp;A printed copy of this E-Ticket or an electronic display on a phone/tablet must be presented at the time of check-in and to gain access to the airport terminal.</div>
+    <div class="info-item">&#8226;&nbsp;We won't be responsible for any delay or cancellation of a flight from the airline's end for any reason.</div>
+    <div class="info-item">&#8226;&nbsp;No show refund is not applicable for exclusive/special fare tickets.</div>
 
-    <div class="company-details">
-        <p><strong>Note:</strong> Carry a valid Photo ID along with this ticket to the airport. Check-in counters close 60 mins prior to departure.</p>
-        <p>Thank you for choosing Go Fly High / Bhumi Holidays.</p>
-    </div>
+    <!-- Coloured footer bar -->
+    <table class="footer-bar">
+        <tr>
+            <td class="bar-orange">&nbsp;</td>
+            <td class="bar-green">&nbsp;</td>
+            <td class="bar-blue">&nbsp;</td>
+            <td class="bar-dark">&nbsp;</td>
+        </tr>
+    </table>
+
 </body>
 </html>

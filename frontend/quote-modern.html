@@ -640,8 +640,8 @@
   /* ══════════════════════════════════════════════════
      CONFIGURATION
   ══════════════════════════════════════════════════ */
-  let serverName = "localhost:8083";
-  // let serverName = "api.goflyhigh.in";
+  // let serverName = "localhost:8083";
+  let serverName = "api.goflyhigh.in";
 
   /* ══════════════════════════════════════════════════
      GLOBAL STATE  (same as original file)
@@ -676,7 +676,7 @@
     dropDown1.innerHTML = '';
     dropDown1.classList.remove('open');
     if (!input.length) return;
-    fetch(`http://${serverName}/search/` + input)
+    fetch(`https://${serverName}/search/` + input)
       .then(r => r.json())
       .then(result => {
         const items = result.map(c => c.v);
@@ -702,7 +702,7 @@
     dropDown2.innerHTML = '';
     dropDown2.classList.remove('open');
     if (!input.length) return;
-    fetch(`http://${serverName}/search/` + input)
+    fetch(`https://${serverName}/search/` + input)
       .then(r => r.json())
       .then(result => {
         const items = result.map(c => c.v);
@@ -778,7 +778,7 @@
     document.getElementById('isLoading').hidden = false;
     document.getElementById('searchBtn').disabled = true;
 
-    const apiUrl = `http://${serverName}/find/${from}/${to}/${date}/${e1}/${e2}/${e3}/null`;
+    const apiUrl = `https://${serverName}/find/${from}/${to}/${date}/${e1}/${e2}/${e3}/null`;
 
     fetch(apiUrl, { method: 'GET', redirect: 'follow' })
       .then(r => r.json())
@@ -1425,7 +1425,7 @@ Contact: +91 8980345600 | support@bhumiholidays.com
     const payload = prepareTicketRequest('ticketBtnDownload', 'Download PDF');
     if (!payload) return;
 
-    fetch('http://localhost:8083/api/ticket/download', {
+    fetch('https://localhost:8083/api/ticket/download', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -1463,7 +1463,7 @@ Contact: +91 8980345600 | support@bhumiholidays.com
         return;
     }
 
-    fetch('http://localhost:8083/api/ticket/email', {
+    fetch('https://localhost:8083/api/ticket/email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

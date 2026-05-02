@@ -1,6 +1,7 @@
 package com.test.coupen.resources;
 
 import com.test.coupen.TicketRequestDto;
+import com.test.coupen.dto.TicketSummaryDto;
 import com.test.coupen.entity.TicketEntity;
 import com.test.coupen.repository.TicketRepository;
 import com.test.coupen.service.EmailService;
@@ -12,7 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/ticket")
@@ -31,13 +35,10 @@ public class TicketController {
     @PostMapping("/email")
     public ResponseEntity<String> emailTicket(@RequestBody TicketRequestDto request) {
         try {
-            String pnr = generatePnr();
+            String pnr = request.getPnr();
             byte[] pdfBytes = pdfGeneratorService.generateTicketPdf(request, pnr);
-            
-            // Save to DB
-            saveTicket(request, pnr, pdfBytes);
 
-            // Send Email
+            saveTicket(request, pnr, pdfBytes);
             emailService.sendTicketEmail(request.getEmail(), pdfBytes, request, pnr);
 
             return ResponseEntity.ok("{\"message\": \"Email sent successfully\"}");
@@ -50,10 +51,9 @@ public class TicketController {
     @PostMapping("/download")
     public ResponseEntity<byte[]> downloadTicket(@RequestBody TicketRequestDto request) {
         try {
-            String pnr = generatePnr();
+            String pnr = request.getPnr();
             byte[] pdfBytes = pdfGeneratorService.generateTicketPdf(request, pnr);
-            
-            // Save to DB
+
             saveTicket(request, pnr, pdfBytes);
 
             return ResponseEntity.ok()
@@ -64,6 +64,28 @@ public class TicketController {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<List<TicketSummaryDto>> getUserTickets(@RequestParam String email) {
+        List<TicketEntity> tickets = ticketRepository.findByEmailOrderByTicketGeneratedAtDesc(email);
+        List<TicketSummaryDto> summaries = tickets.stream()
+                .map(t -> new TicketSummaryDto(t.getId(), t.getPnr(), t.getFlightName(), t.getRoute(), t.getTicketGeneratedAt()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(summaries);
+    }
+
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> downloadTicketById(@PathVariable Long id) {
+        Optional<TicketEntity> ticketOpt = ticketRepository.findById(id);
+        if (ticketOpt.isEmpty() || ticketOpt.get().getPdfBlob() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        TicketEntity ticket = ticketOpt.get();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=E-Ticket_" + ticket.getPnr() + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(ticket.getPdfBlob());
     }
 
     private void saveTicket(TicketRequestDto request, String pnr, byte[] pdfBytes) {

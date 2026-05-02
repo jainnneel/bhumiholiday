@@ -20,6 +20,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 @Service
@@ -175,6 +176,12 @@ public class FlightService {
                                        String date, int adult, int child, int infrant) throws IOException {
         NewCleartripResponse newResponse = newApiClient.fetchFlights(
                 fromCode, toCode, fromCity, toCity, date, adult, child, infrant);
+
+        newResponse.flights = newResponse.flights.entrySet().stream()
+                .filter(entry ->
+                        entry.getValue().departure.airport.code.equalsIgnoreCase(fromCode))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
         return flightResponseAdapter.adapt(newResponse);
     }
 

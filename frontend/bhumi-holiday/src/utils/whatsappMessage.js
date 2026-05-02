@@ -37,8 +37,7 @@ export function buildWhatsAppMessage({ flight, passengers, email, mobile, coupon
 
   const couponDisplay = coupon && coupon.trim() ? coupon.trim() : 'None'
 
-  return `Hi Bhumi Holiday! I would like to send a flight booking inquiry.
-
+  return `
 FLIGHT DETAILS
 --------------------------------------
 Airline: ${flight.flightName}

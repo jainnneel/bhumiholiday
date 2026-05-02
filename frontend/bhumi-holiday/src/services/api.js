@@ -1,12 +1,26 @@
 import axios from 'axios'
 
-// Base URL — uses Vite dev proxy in dev, direct in prod
+// const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8084'
+
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.bhumiholidays.in'
+
 
 const http = axios.create({
   baseURL: BASE_URL,
   timeout: 30000,
   headers: { 'Content-Type': 'application/json' },
+})
+
+// Inject X-User-Email header for authenticated endpoints
+http.interceptors.request.use((config) => {
+  try {
+    const raw = localStorage.getItem('bh_session')
+    if (raw) {
+      const user = JSON.parse(raw)
+      if (user?.email) config.headers['X-User-Email'] = user.email
+    }
+  } catch { /* ignore */ }
+  return config
 })
 
 // ─── Auth API ────────────────────────────────────────────────────────────────
@@ -30,7 +44,7 @@ export const authAPI = {
       phone:     profile.phone,
       company:   profile.company   || '',
       pan:       profile.pan       || '',
-      gst:       profile.gst       || '',
+      gst:       profile.gst?.trim() || null,
       address:   profile.address   || '',
     }),
 }
@@ -82,6 +96,25 @@ export const flightAPI = {
 
   searchAirport: (keyword) =>
     http.get(`/search/${encodeURIComponent(keyword)}`),
+}
+
+// ─── Ticket API ───────────────────────────────────────────────────────────────
+// Backend: POST /api/ticket/email    → { message }
+//          POST /api/ticket/download → PDF blob
+//          GET  /api/ticket/user?email=... → List<TicketSummaryDto>
+//          GET  /api/ticket/{id}/pdf       → PDF blob
+export const ticketAPI = {
+  emailTicket: (dto) =>
+    http.post('/api/ticket/email', dto),
+
+  downloadTicket: (dto) =>
+    http.post('/api/ticket/download', dto, { responseType: 'blob' }),
+
+  getUserTickets: (email) =>
+    http.get('/api/ticket/user', { params: { email } }),
+
+  downloadById: (id) =>
+    http.get(`/api/ticket/${id}/pdf`, { responseType: 'blob' }),
 }
 
 export default http

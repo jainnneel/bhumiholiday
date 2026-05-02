@@ -1,9 +1,12 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
 import { useAuth } from '../store/AuthContext'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import CouponCard from '../components/CouponCard'
+import { ticketAPI } from '../services/api'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -11,42 +14,81 @@ const fadeUp = (delay = 0) => ({
   transition: { delay, duration: 0.4 },
 })
 
+function TicketRow({ ticket, onDownload, downloading }) {
+  const date = ticket.ticketGeneratedAt
+    ? new Date(ticket.ticketGeneratedAt).toLocaleDateString('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+      })
+    : '—'
+
+  return (
+    <div className="flex items-center justify-between gap-3 py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center flex-shrink-0">
+          <i className="fas fa-ticket-alt text-brand-500 text-sm" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+            {ticket.route || 'Flight Ticket'}
+          </p>
+          <p className="text-xs text-gray-400 truncate">
+            <span className="font-semibold text-brand-500">{ticket.pnr}</span>
+            &nbsp;·&nbsp;{ticket.flightName}
+            &nbsp;·&nbsp;{date}
+          </p>
+        </div>
+      </div>
+      <button
+        onClick={() => onDownload(ticket.id, ticket.pnr)}
+        disabled={downloading === ticket.id}
+        className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-brand-300 dark:border-brand-600 text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {downloading === ticket.id
+          ? <i className="fas fa-circle-notch fa-spin" />
+          : <i className="fas fa-download" />
+        }
+        {downloading === ticket.id ? 'Downloading…' : 'Download'}
+      </button>
+    </div>
+  )
+}
+
 export default function Dashboard({ darkMode, setDarkMode }) {
   const { user, coupon, couponApplied } = useAuth()
   const navigate = useNavigate()
 
+  const [tickets,     setTickets]     = useState([])
+  const [ticketsLoad, setTicketsLoad] = useState(false)
+  const [downloading, setDownloading] = useState(null)
+
   const firstName = user?.firstName || user?.email?.split('@')[0] || 'Traveller'
 
-  const statsCards = [
-    {
-      icon: 'fa-ticket-alt',
-      label: 'Coupon Status',
-      value: couponApplied ? 'Applied' : 'Not Applied',
-      color: couponApplied ? 'emerald' : 'gray',
-      bg: couponApplied ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-gray-50 dark:bg-gray-700/50',
-    },
-    {
-      icon: 'fa-percent',
-      label: 'Discount Type',
-      value: coupon?.discountType === 'FLAT' ? 'Flat Discount' : coupon ? 'Range Discount' : 'N/A',
-      color: 'brand',
-      bg: 'bg-brand-50 dark:bg-brand-900/20',
-    },
-    {
-      icon: 'fa-rupee-sign',
-      label: 'Max Savings',
-      value: coupon?.maxDiscount ? `₹${Number(coupon.maxDiscount).toLocaleString()}` : '—',
-      color: 'amber',
-      bg: 'bg-amber-50 dark:bg-amber-900/20',
-    },
-    {
-      icon: 'fa-plane',
-      label: 'Flight Routes',
-      value: 'Domestic',
-      color: 'sky',
-      bg: 'bg-sky-50 dark:bg-sky-900/20',
-    },
-  ]
+  useEffect(() => {
+    if (!user?.email) return
+    setTicketsLoad(true)
+    ticketAPI.getUserTickets(user.email)
+      .then((res) => setTickets(Array.isArray(res.data) ? res.data : []))
+      .catch(() => {})
+      .finally(() => setTicketsLoad(false))
+  }, [user?.email])
+
+  const handleDownload = async (id, pnr) => {
+    setDownloading(id)
+    try {
+      const res = await ticketAPI.downloadById(id)
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `E-Ticket_${pnr}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Ticket downloaded!')
+    } catch {
+      toast.error('Failed to download ticket.')
+    } finally {
+      setDownloading(null)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
@@ -69,31 +111,12 @@ export default function Dashboard({ darkMode, setDarkMode }) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
 
-        {/* Stats row */}
-        {/*<motion.div {...fadeUp(0.1)} className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 -mt-8">*/}
-        {/*  {statsCards.map((card, i) => (*/}
-        {/*    <motion.div*/}
-        {/*      key={i}*/}
-        {/*      initial={{ opacity: 0, y: 20 }}*/}
-        {/*      animate={{ opacity: 1, y: 0 }}*/}
-        {/*      transition={{ delay: 0.1 + i * 0.05 }}*/}
-        {/*      className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700"*/}
-        {/*    >*/}
-        {/*      <div className={`w-10 h-10 ${card.bg} rounded-xl flex items-center justify-center mb-3`}>*/}
-        {/*        <i className={`fas ${card.icon} text-${card.color}-500 text-sm`} />*/}
-        {/*      </div>*/}
-        {/*      <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">{card.label}</p>*/}
-        {/*      <p className={`text-sm font-bold text-${card.color}-600 dark:text-${card.color}-400`}>*/}
-        {/*        {card.value}*/}
-        {/*      </p>*/}
-        {/*    </motion.div>*/}
-        {/*  ))}*/}
-        {/*</motion.div>*/}
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* Left: Coupon */}
+          {/* Left: Coupon + My Tickets */}
           <motion.div {...fadeUp(0.2)} className="lg:col-span-2 space-y-6">
+
+            {/* Coupon */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">Your Coupon</h2>
@@ -129,6 +152,63 @@ export default function Dashboard({ darkMode, setDarkMode }) {
                 <i className="fas fa-search mr-2" />Search Flights
               </button>
             </div>
+
+            {/* My Tickets */}
+            <motion.div {...fadeUp(0.35)}>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <i className="fas fa-ticket-alt text-brand-500" />My Tickets
+                </h2>
+                {tickets.length > 0 && (
+                  <span className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-full">
+                    {tickets.length} ticket{tickets.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+                {ticketsLoad ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-3 py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                        <div className="w-9 h-9 rounded-xl shimmer dark:bg-gray-700 flex-shrink-0" />
+                        <div className="flex-1 space-y-1.5">
+                          <div className="h-3.5 w-48 rounded shimmer dark:bg-gray-700" />
+                          <div className="h-3 w-32 rounded shimmer dark:bg-gray-700" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : tickets.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="w-14 h-14 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                      <i className="fas fa-ticket-alt text-gray-400 text-2xl" />
+                    </div>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">No tickets yet</p>
+                    <p className="text-gray-400 text-xs mt-1">
+                      Search a flight and click "Get Ticket" to generate your e-ticket.
+                    </p>
+                    <button
+                      onClick={() => navigate('/search')}
+                      className="mt-4 btn-primary px-5 py-2 text-sm"
+                    >
+                      <i className="fas fa-search mr-1.5" />Search Flights
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    {tickets.map((ticket) => (
+                      <TicketRow
+                        key={ticket.id}
+                        ticket={ticket}
+                        onDownload={handleDownload}
+                        downloading={downloading}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
           </motion.div>
 
           {/* Right: Profile + info */}

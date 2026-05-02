@@ -118,8 +118,9 @@ export default function Signup({ darkMode, setDarkMode }) {
       if (!PAN_RE.test(value.trim().toUpperCase())) return 'Invalid PAN — format: ABCDE1234F'
     }
     if (name === 'gst') {
-      if (!value.trim())                        return 'GST number is required'
-      if (!GST_RE.test(value.trim().toUpperCase())) return 'Invalid GST — 15-character format'
+      // GST is optional — only validate format when a value is provided
+      if (value.trim() && !GST_RE.test(value.trim().toUpperCase()))
+        return 'Invalid GST — 15-character format (e.g. 27ABCDE1234F1Z5)'
     }
     if (name === 'address') {
       if (!value.trim()) return 'Billing address is required'
@@ -139,12 +140,16 @@ export default function Signup({ darkMode, setDarkMode }) {
   /* ─ Step 4: Submit signup ─ */
   const handleSignup = async (e) => {
     e.preventDefault()
-    // Validate all billing fields on submit
+    // Validate billing fields on submit (GST is optional)
     const errs = {}
-    ;['pan', 'gst', 'address'].forEach((f) => {
+    ;['pan', 'address'].forEach((f) => {
       const err = validateBillingField(f, billing[f])
       if (err) errs[f] = err
     })
+    if (billing.gst.trim()) {
+      const gstErr = validateBillingField('gst', billing.gst)
+      if (gstErr) errs.gst = gstErr
+    }
     setBillingErrors(errs)
     if (Object.keys(errs).length > 0) return
 
@@ -403,7 +408,7 @@ export default function Signup({ darkMode, setDarkMode }) {
                   {/* GST */}
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5">
-                      GST Number <span className="text-red-400">*</span>
+                      GST Number <span className="text-gray-400 font-normal">(optional)</span>
                     </label>
                     <div className="relative">
                       <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"><i className="fas fa-receipt" /></span>

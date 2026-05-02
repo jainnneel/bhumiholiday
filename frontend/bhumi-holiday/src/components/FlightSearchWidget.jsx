@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../store/AuthContext'
 import { flightAPI } from '../services/api'
+import CustomDatePicker from './CustomDatePicker'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Airport autocomplete
@@ -84,7 +85,7 @@ function AirportInput({ label, icon, value, onChange, placeholder, id, compact =
           type="text"
           value={query}
           onChange={handleInput}
-          onFocus={() => query.length >= 2 && doSearch(query)}
+          onFocus={() => { setQuery(''); onChange('') }}
           placeholder={placeholder}
           autoComplete="off"
           className="w-full pl-10 pr-10 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600
@@ -185,16 +186,21 @@ export default function FlightSearchWidget({
   const { user, coupon, couponApplied, setCouponApplied } = useAuth()
   const navigate = useNavigate()
 
+  const tomorrow = (() => {
+    const d = new Date(); d.setDate(d.getDate() + 1)
+    return d.toISOString().split('T')[0]
+  })()
+  const today = new Date().toISOString().split('T')[0]
+
   const [from,       setFrom]       = useState(initial.from     || 'Ahmedabad, IN - Sardar Vallabh Bhai Patel (AMD)')
   const [to,         setTo]         = useState(initial.to       || 'Mumbai, IN - Chatrapati Shivaji Airport (BOM)')
-  const [date,       setDate]       = useState(initial.date     || '')
+  const [date,       setDate]       = useState(initial.date     || tomorrow)
   const [adults,     setAdults]     = useState(initial.adults   || 1)
   const [children,   setChildren]   = useState(initial.children || 0)
   const [couponCode, setCouponCode] = useState('')
   const [couponMode, setCouponMode] = useState('idle') // 'idle' | 'editing'
   const couponInputRef = useRef(null)
 
-  const today       = new Date().toISOString().split('T')[0]
   const contextCode = coupon ? (coupon.coupenCode || coupon.code || '') : ''
 
   // Sync from auth context
@@ -255,16 +261,14 @@ export default function FlightSearchWidget({
         <div className="flex-1 min-w-[120px]">
           <AirportInput id="to-c" icon="fa-plane-arrival" value={to} onChange={setTo} placeholder="To" compact />
         </div>
-        <div className="min-w-[110px]">
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none">
-              <i className="far fa-calendar-alt" />
-            </span>
-            <input type="date" value={date} min={today} onChange={(e) => setDate(e.target.value)} required
-              className="w-full pl-8 pr-2 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600
-                         bg-gray-50 dark:bg-gray-700/60 text-xs text-gray-900 dark:text-white
-                         focus:outline-none focus:border-brand-400 transition-all" />
-          </div>
+        <div className="min-w-[130px]">
+          <CustomDatePicker
+            value={date}
+            onChange={setDate}
+            min={today}
+            placeholder="Date"
+            compact
+          />
         </div>
         <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-2 h-10 flex-shrink-0">
           <button type="button" onClick={() => setAdults(Math.max(1, adults - 1))}
@@ -332,32 +336,18 @@ export default function FlightSearchWidget({
             Mobile:  DATE full-width, then ADULTS + CHILDREN side-by-side (2 cols)
             Desktop: 3 equal columns
       ── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 items-start">
         {/* Date — spans full width on mobile */}
         <div className="col-span-2 md:col-span-1">
-          <label htmlFor="travel-date" className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1.5">
+          <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1.5">
             Travel Date
           </label>
-          <div className="relative group">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-500 transition-colors pointer-events-none text-sm">
-              <i className="far fa-calendar-alt" />
-            </span>
-            <input
-              id="travel-date"
-              type="date"
-              value={date}
-              min={today}
-              onChange={(e) => setDate(e.target.value)}
-              required
-              className="w-full pl-10 pr-3 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600
-                         bg-gray-50 dark:bg-gray-700/60 text-sm font-medium
-                         text-gray-900 dark:text-white
-                         focus:outline-none focus:border-brand-400 dark:focus:border-brand-500
-                         focus:bg-white dark:focus:bg-gray-700
-                         focus:ring-4 focus:ring-brand-500/10
-                         hover:border-gray-300 dark:hover:border-gray-500 transition-all"
-            />
-          </div>
+          <CustomDatePicker
+            value={date}
+            onChange={setDate}
+            min={today}
+            placeholder="Select travel date"
+          />
         </div>
 
         {/* Adults */}

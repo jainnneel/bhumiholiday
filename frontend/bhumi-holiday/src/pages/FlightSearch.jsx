@@ -12,9 +12,10 @@ import { flightAPI } from '../services/api'
 import { normaliseFlights, applyFlightFilters } from '../utils/flightUtils'
 import { buildWhatsAppMessage, openWhatsApp } from '../utils/whatsappMessage'
 import { waLink, WA_MSG_INTERNATIONAL } from '../utils/constants'
+import TicketModal from '../components/TicketModal'
 
 // ── Booking / WhatsApp modal ─────────────────────────────────────────────────
-function BookingModal({ flight, couponCode, onClose }) {
+function BookingModal({ flight, couponCode, user, onClose }) {
   const adults   = parseInt(flight.adult)    || 0
   const children = parseInt(flight.child)    || 0
   const infants  = parseInt(flight.infrants) || 0
@@ -23,8 +24,8 @@ function BookingModal({ flight, couponCode, onClose }) {
   const [passengers, setPassengers] = useState(() =>
     Array.from({ length: total }, () => ({ first: '', last: '' }))
   )
-  const [email,  setEmail]  = useState('')
-  const [mobile, setMobile] = useState('')
+  const [email,  setEmail]  = useState(user?.email || '')
+  const [mobile, setMobile] = useState(user?.phone || '')
   const [error,  setError]  = useState('')
 
   const updatePax = (i, field, val) => {
@@ -37,18 +38,42 @@ function BookingModal({ flight, couponCode, onClose }) {
     return `Infant ${idx - adults - children + 1}`
   }
 
-  const handleSubmit = () => {
-    if (!email.trim() || !mobile.trim()) { setError('Please fill email and mobile'); return }
-    if (mobile.replace(/\D/g, '').length < 10) { setError('Enter a valid 10-digit mobile number'); return }
+  const validate = () => {
+    if (!email.trim() || !mobile.trim()) { setError('Please fill email and mobile'); return false }
+    if (mobile.replace(/\D/g, '').length < 10) { setError('Enter a valid 10-digit mobile number'); return false }
     for (let i = 0; i < total; i++) {
       if (!passengers[i]?.first.trim() || !passengers[i]?.last.trim()) {
-        setError('Please fill all passenger names'); return
+        setError('Please fill all passenger names'); return false
       }
     }
-    setError('')
-    const msg = buildWhatsAppMessage({ flight, passengers, email, mobile, coupon: couponCode })
+    setError(''); return true
+  }
+
+  const billingFields = {
+    company: user?.company || '',
+    pan:     user?.pan     || '',
+    gst:     user?.gst     || '',
+    address: user?.address || '',
+  }
+
+  const handleSubmit = () => {
+    if (!validate()) return
+    const msg = buildWhatsAppMessage({ flight, passengers, email, mobile, coupon: couponCode, ...billingFields })
     onClose()
     openWhatsApp(msg)
+  }
+
+  const handleCopy = () => {
+    if (!validate()) return
+    const msg = buildWhatsAppMessage({ flight, passengers, email, mobile, coupon: couponCode, ...billingFields })
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(msg).then(() => toast.success('Message copied to clipboard!'))
+    } else {
+      const el = document.createElement('textarea')
+      el.value = msg
+      document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el)
+      toast.success('Message copied!')
+    }
   }
 
   return (
@@ -135,9 +160,12 @@ function BookingModal({ flight, couponCode, onClose }) {
 
           {error && <p className="text-red-500 text-sm mb-3 flex items-center gap-1.5"><i className="fas fa-exclamation-circle" />{error}</p>}
 
-          <div className="flex gap-2">
-            <button onClick={onClose} className="btn-secondary flex-1 py-3 text-sm">Cancel</button>
-            <button onClick={handleSubmit} className="btn-whatsapp flex-1 py-3">
+          <div className="flex gap-2 flex-wrap">
+            <button onClick={onClose} className="btn-secondary flex-1 py-3 text-sm min-w-[80px]">Cancel</button>
+            <button onClick={handleCopy} className="btn-secondary flex-shrink-0 py-3 px-4 text-sm">
+              <i className="far fa-copy text-sm" />Copy
+            </button>
+            <button onClick={handleSubmit} className="btn-whatsapp flex-1 py-3 min-w-[150px]">
               <i className="fab fa-whatsapp text-lg" />Send on WhatsApp
             </button>
           </div>
@@ -148,7 +176,7 @@ function BookingModal({ flight, couponCode, onClose }) {
 }
 
 // ── Flight Card ───────────────────────────────────────────────────────────────
-function FlightCard({ flight, onInquiry, isBestDeal = false }) {
+function FlightCard({ flight, onInquiry, onTicket, isBestDeal = false, isLoggedIn = false }) {
   const savings = flight.hasPersonDiscount
     ? Math.round(parseFloat(flight.perPerson) - parseFloat(flight.dicPerPerson))
     : 0
@@ -175,7 +203,7 @@ function FlightCard({ flight, onInquiry, isBestDeal = false }) {
       )}
 
       {/* Top bar */}
-      <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-2.5 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+      <div className="bg-gray-50 dark:bg-gray-700/50 px-4 sm:px-5 py-2.5 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
         <span className="font-semibold text-sm text-gray-800 dark:text-gray-100">{flight.airlineInfo}</span>
         <span className="text-xs text-gray-400">
           <i className="far fa-calendar-alt mr-1" />{flight.formattedDate}
@@ -183,11 +211,11 @@ function FlightCard({ flight, onInquiry, isBestDeal = false }) {
       </div>
 
       {/* Body */}
-      <div className="p-4 sm:p-5 flex flex-wrap lg:flex-nowrap items-center gap-3 sm:gap-4 lg:gap-6">
-        {/* Route */}
-        <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 flex-[2] min-w-0 w-full lg:w-auto">
-          <div className="text-center min-w-[56px]">
-            <p className="text-2xl font-black text-gray-900 dark:text-white leading-none">{flight.fromTime}</p>
+      <div className="p-4 sm:p-5">
+        {/* Route row */}
+        <div className="flex items-center gap-2 sm:gap-4 mb-4">
+          <div className="text-center min-w-[52px] sm:min-w-[60px]">
+            <p className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white leading-none">{flight.fromTime}</p>
             <p className="text-xs font-bold text-gray-400 uppercase mt-1">{flight.fromc}</p>
           </div>
 
@@ -195,7 +223,7 @@ function FlightCard({ flight, onInquiry, isBestDeal = false }) {
             <p className="text-xs font-semibold text-gray-400 mb-1">{flight.duration}</p>
             <div className="w-full flex items-center">
               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
-              <i className="fas fa-plane text-brand-400 text-xs mx-2" />
+              <i className="fas fa-plane text-brand-400 text-xs mx-1.5 sm:mx-2" />
               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
             </div>
             <p className={`text-xs font-semibold mt-1 ${stopsColor}`}>
@@ -203,46 +231,50 @@ function FlightCard({ flight, onInquiry, isBestDeal = false }) {
             </p>
           </div>
 
-          <div className="text-center min-w-[56px]">
-            <p className="text-2xl font-black text-gray-900 dark:text-white leading-none">{flight.toTime}</p>
+          <div className="text-center min-w-[52px] sm:min-w-[60px]">
+            <p className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white leading-none">{flight.toTime}</p>
             <p className="text-xs font-bold text-gray-400 uppercase mt-1">{flight.toc}</p>
           </div>
         </div>
 
-        {/* Separator */}
-        <div className="hidden lg:block w-px h-14 border-r border-dashed border-gray-200 dark:border-gray-600" />
-
-        {/* Price */}
-        <div className="flex-1 text-right">
-          <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
-            ₹{Number(flight.dicPerPerson).toLocaleString()}
-          </p>
-          <p className="text-xs text-gray-400 mt-0.5">per person</p>
-          {flight.hasPersonDiscount && (
-            <p className="text-xs text-gray-400 line-through mt-0.5">
-              ₹{Number(flight.perPerson).toLocaleString()}
+        {/* Price + Actions row */}
+        <div className="flex items-start justify-between gap-3">
+          {/* Price */}
+          <div className="min-w-0">
+            <p className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
+              ₹{Number(flight.dicPerPerson).toLocaleString()}
             </p>
-          )}
-          {savings > 0 && (
-            <span className="inline-block bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 text-xs font-bold px-2 py-0.5 rounded-full mt-1">
-              Save ₹{savings.toLocaleString()}
-            </span>
-          )}
-        </div>
-
-        {/* Action */}
-        <div className="flex flex-col items-end gap-2 min-w-[110px] w-full lg:w-auto">
-          <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">
-            Total ₹{Number(flight.dicPrice).toLocaleString()}
-          </p>
-          <button onClick={() => onInquiry(flight)} className="btn-whatsapp w-full justify-center">
-            <i className="fab fa-whatsapp text-base" />Inquiry
-          </button>
-          {flight.seatLeft && parseInt(flight.seatLeft) > 0 && parseInt(flight.seatLeft) <= 9 && (
-            <p className="text-xs text-amber-500 font-medium">
-              <i className="fas fa-exclamation-triangle mr-1" />{flight.seatLeft} seats left
+            <p className="text-xs text-gray-400 mt-0.5">per person</p>
+            {flight.hasPersonDiscount && (
+              <p className="text-xs text-gray-400 line-through mt-0.5">₹{Number(flight.perPerson).toLocaleString()}</p>
+            )}
+            {savings > 0 && (
+              <span className="inline-block bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 text-xs font-bold px-2 py-0.5 rounded-full mt-1">
+                Save ₹{savings.toLocaleString()}
+              </span>
+            )}
+            <p className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1">
+              Total ₹{Number(flight.dicPrice).toLocaleString()}
             </p>
-          )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col gap-1.5 flex-shrink-0 min-w-[108px] sm:min-w-[130px]">
+            <button onClick={() => onInquiry(flight)} className="btn-whatsapp w-full justify-center text-sm py-2">
+              <i className="fab fa-whatsapp text-base" />Inquiry
+            </button>
+            {isLoggedIn && (
+              <button onClick={() => onTicket(flight)}
+                className="w-full inline-flex items-center justify-center gap-1.5 bg-white dark:bg-gray-700 text-brand-600 dark:text-brand-400 font-semibold text-sm py-2 rounded-xl border-2 border-brand-200 dark:border-brand-700 hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all duration-200">
+                <i className="fas fa-ticket-alt text-xs" />Get Ticket
+              </button>
+            )}
+            {flight.seatLeft && parseInt(flight.seatLeft) > 0 && parseInt(flight.seatLeft) <= 9 && (
+              <p className="text-xs text-amber-500 font-medium text-center">
+                <i className="fas fa-exclamation-triangle mr-1" />{flight.seatLeft} seats left
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </motion.div>
@@ -259,8 +291,9 @@ export default function FlightSearch({ darkMode, setDarkMode }) {
   const [filtered,    setFiltered]    = useState([])
   const [searched,    setSearched]    = useState(false)
   const [lastSearch,  setLastSearch]  = useState(null) // {from, to, date, adults, children, coupon}
-  const [modalFlight, setModalFlight] = useState(null)
-  const [stickySearch,setStickySearch]= useState(false)
+  const [modalFlight,  setModalFlight]  = useState(null)
+  const [ticketFlight, setTicketFlight] = useState(null)
+  const [stickySearch, setStickySearch] = useState(false)
 
   // Filters
   const [filterAirline, setFilterAirline] = useState('')
@@ -568,7 +601,9 @@ export default function FlightSearch({ darkMode, setDarkMode }) {
                       key={`${flight.rowId}-${flight.fromTime}`}
                       flight={flight}
                       onInquiry={setModalFlight}
+                      onTicket={setTicketFlight}
                       isBestDeal={idx === 0}
+                      isLoggedIn={!!user}
                     />
                   ))}
                 </AnimatePresence>
@@ -604,7 +639,21 @@ export default function FlightSearch({ darkMode, setDarkMode }) {
           <BookingModal
             flight={modalFlight}
             couponCode={lastSearch?.coupon || ''}
+            user={user}
             onClose={() => setModalFlight(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Ticket Modal */}
+      <AnimatePresence>
+        {ticketFlight && (
+          <TicketModal
+            flight={ticketFlight}
+            lastSearch={lastSearch}
+            userEmail={user?.email || ''}
+            userName={user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : ''}
+            onClose={() => setTicketFlight(null)}
           />
         )}
       </AnimatePresence>
