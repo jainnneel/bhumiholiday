@@ -1010,6 +1010,7 @@
       <div class="route-section">
         <div class="endpoint">
           <div class="time">${obj.fromTime}</div>
+          <div class="time" style="display:none">${obj.fromTime.replace(":", "")}</div>
           <div class="city">${obj.from}</div>
           <div class="date">${fmtDepDate(obj.fromDate)}</div>
         </div>
@@ -1022,6 +1023,7 @@
         </div>
         <div class="endpoint arr">
           <div class="time">${obj.toTime}</div>
+          <div class="time" style="display:none">${obj.toTime.replace(":", "")}</div>
           <div class="city">${obj.to}</div>
           <div class="date">${fmtArrDate(obj.toDate)}</div>
         </div>

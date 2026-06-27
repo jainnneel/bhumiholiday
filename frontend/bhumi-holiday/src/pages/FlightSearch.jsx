@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { useAuth } from '../store/AuthContext'
@@ -284,6 +284,7 @@ function FlightCard({ flight, onInquiry, onTicket, isBestDeal = false, isLoggedI
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function FlightSearch({ darkMode, setDarkMode }) {
   const { coupon, couponApplied, setCouponApplied, user } = useAuth()
+  const navigate            = useNavigate()
   const [searchParams]      = useSearchParams()
 
   const [loading,     setLoading]     = useState(false)
@@ -373,9 +374,16 @@ export default function FlightSearch({ darkMode, setDarkMode }) {
     } catch (err) {
       setLoading(false)
       const msg = err?.response?.data?.message || err?.message || 'Failed to fetch flights'
-      toast.error(msg)
+      if (msg === 'Coupon code is not valid.') {
+        toast.error('Your coupon code is invalid. Please log in to access your exclusive coupon.', { duration: 5000 })
+        if (!user) {
+          setTimeout(() => navigate('/login'), 2500)
+        }
+      } else {
+        toast.error(msg)
+      }
     }
-  }, [])
+  }, [user, navigate])
 
   const clearFilters = () => {
     setFilterAirline(''); setFilterSearch(''); setFilterStops('All'); setFilterMin(''); setFilterMax('')

@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flight Offers Analysis</title>
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: 'Arial', sans-serif;
+    background: #f0f4f8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 10px;
+    width: 100%;
+}
+h1 {
+    color: #333;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.input-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 15px;
+    width: 100%;
+    max-width: 420px;
+    justify-content: center;
+}
+input[type="number"], select, input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: white;
+}
+input[type="number"] {
+    width: 140px;
+}
+select {
+    width: 85px;
+    cursor: pointer;
+}
+button.submit-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    background: #4CAF50;
+    transition: 0.3s;
+    flex-shrink: 0;
+}
+button.submit-btn:hover { background: #45a049; }
+button.submit-btn:disabled { background: #9e9e9e; cursor: not-allowed; }
+
+#discount-container {
+    margin: 15px 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 420px;
+    gap: 6px;
+    display: none;
+}
+#discount-container input {
+    width: 110px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+.discount-btn {
+    background: #007bff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.search-toggle-btn, .sort-toggle-btn {
+    background: #6c757d;
+    border: none;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.search-toggle-btn:hover, .sort-toggle-btn:hover { background: #5a6268; }
+.sort-toggle-btn { display: none; }
+
+#search-box-container {
+    width: 100%;
+    max-width: 420px;
+    margin-bottom: 5px;
+    display: none;
+    justify-content: center;
+}
+#search-input {
+    width: 65%;
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+#results-wrapper {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.card {
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    padding: 15px 24px;
+    margin: 10px 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: white;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+}
+.calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+.calc-button {
+    flex: 3;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    background: #ff5722;
+    margin-right: 8px;
+    transition: 0.3s;
+}
+.calc-button:hover { opacity: 0.9; transform: scale(1.02); }
+.margin-input {
+    flex: 1;
+    max-width: 70px;
+    padding: 4px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 13px;
+    text-align: right;
+}
+.info-text {
+    font-size: 13px;
+    color: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.nested-split-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 5px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.together-button {
+    flex: 3;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    background: #007bff;
+    margin-right: 8px;
+    transition: 0.3s;
+}
+.together-button:hover { opacity: 0.9; transform: scale(1.02); }
+
+#toast {
+    visibility: hidden;
+    min-width: 280px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 30px;
+    padding: 12px 24px;
+    position: fixed;
+    z-index: 9999;
+    bottom: 30px;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: visibility 0s, opacity 0.3s linear;
+    opacity: 0;
+}
+#toast.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Loading & Error States */
+#loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 30px 0;
+}
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 4px solid #d0d0d0;
+    border-top-color: #4CAF50;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading-indicator p {
+    color: #666;
+    margin-top: 10px;
+    font-size: 14px;
+}
+#error-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+    text-align: center;
+}
+#error-msg {
+    color: #c0392b;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<h1>Flight Offers Analysis</h1>
+
+<div id="loading-indicator">
+    <div class="spinner"></div>
+    <p>Loading offers...</p>
+</div>
+
+<div id="error-container">
+    <p id="error-msg">Failed to load offers</p>
+    <button class="submit-btn" onclick="loadOffers()">Retry</button>
+</div>
+
+<div class="input-container" style="display:none;">
+    <input type="number" id="amount" placeholder="Enter Amount" min="0">
+    <select id="pax" title="Select Passengers">
+        <option value="1" selected>1 Pax</option>
+        <option value="2">2 Pax</option>
+        <option value="3">3 Pax</option>
+        <option value="4">4 Pax</option>
+        <option value="5">5 Pax</option>
+        <option value="6">6 Pax</option>
+        <option value="7">7 Pax</option>
+        <option value="8">8 Pax</option>
+        <option value="9">9 Pax</option>
+    </select>
+    <button class="submit-btn" onclick="calculate()">Submit</button>
+</div>
+
+<div id="discount-container">
+    <input type="number" id="discount" placeholder="Discount/Pax">
+    <button class="discount-btn" id="discounted-btn">Discounted: 0</button>
+    <button class="search-toggle-btn" onclick="toggleSearch()" title="Toggle Search">🔍</button>
+    <button class="sort-toggle-btn" id="sort-toggle" onclick="toggleSorting()" title="Toggle Sorting">⇄</button>
+</div>
+
+<div id="search-box-container">
+    <input type="text" id="search-input" placeholder="Search offer..." oninput="filterResults()">
+</div>
+
+<div id="results-wrapper">
+    <div id="results" style="width: 100%;"></div>
+</div>
+
+<div id="toast">Sort Mode Updated</div>
+
+<script>
+const API_BASE = 'http://209.182.233.240:8084';
+
+let calculations = [];
+let resultData = [];
+let basePerPaxAmount = 0;
+let sortMode = 'together';
+
+// ── API Loading ──────────────────────────────────────────────────────────────
+
+function buildCalculations(offers) {
+    return offers.map(offer => {
+        const p = offer.formulaParams ? JSON.parse(offer.formulaParams) : {};
+
+        if (offer.offerType === 'PERCENTAGE') {
+            return {
+                name: offer.name,
+                type: 'percentage',
+                percent: offer.percent,
+                maxCap: offer.maxCap,
+                convFeePerPax: offer.convFeePerPax
+            };
+        }
+
+        if (offer.offerType === 'BASE_FEE_PLUS_PERCENT') {
+            return {
+                name: offer.name,
+                customFormula: (perPaxAmt, pax) => {
+                    let totalRawAmt = perPaxAmt * pax;
+                    let base = totalRawAmt - (p.baseFeePerPax * pax);
+                    let percentDiscount = base * p.percentRate;
+                    let discount = (p.baseFeePerPax * pax) + percentDiscount;
+                    let totalConv = (p.convFeePerPax || 0) * pax;
+                    let total = totalRawAmt - discount + totalConv;
+                    return { total, discount, totalConv };
+                }
+            };
+        }
+
+        if (offer.offerType === 'FLAT_PLUS_PERCENT') {
+            return {
+                name: offer.name,
+                customFormula: (perPaxAmt, pax) => {
+                    let totalRawAmt = perPaxAmt * pax;
+                    let baseFare = totalRawAmt - p.flatDiscount;
+                    let percentDiscount = Math.min(baseFare * p.percentRate, p.percentCap);
+                    let discount = p.flatDiscount + percentDiscount;
+                    let totalConv = (p.convFeePerPax || 0) * pax;
+                    let total = totalRawAmt - discount + totalConv;
+                    return { total, discount, totalConv };
+                }
+            };
+        }
+
+        if (offer.offerType === 'CONDITIONAL_FLAT') {
+            return {
+                name: offer.name,
+                customFormula: (perPaxAmt, pax) => {
+                    let totalRawAmt = perPaxAmt * pax;
+                    let discount = totalRawAmt >= p.threshold ? p.flatDiscount : 0;
+                    let totalConv = (p.convFeePerPax || 0) * pax;
+                    let total = totalRawAmt - discount + totalConv;
+                    return { total, discount, totalConv };
+                }
+            };
+        }
+
+        if (offer.offerType === 'PERCENT_FLAT_CONV') {
+            return {
+                name: offer.name,
+                customFormula: (perPaxAmt, pax) => {
+                    let totalRawAmt = perPaxAmt * pax;
+                    let discount = Math.min(totalRawAmt * p.percentRate, p.percentCap);
+                    let totalConv = p.convFeeFlat || 0;
+                    let total = totalRawAmt - discount + totalConv;
+                    return { total, discount, totalConv };
+                }
+            };
+        }
+
+        return null;
+    }).filter(Boolean);
+}
+
+async function loadOffers() {
+    const loadingEl = document.getElementById('loading-indicator');
+    const errorEl = document.getElementById('error-container');
+    const inputEl = document.querySelector('.input-container');
+
+    loadingEl.style.display = 'flex';
+    errorEl.style.display = 'none';
+    inputEl.style.display = 'none';
+    document.getElementById('discount-container').style.display = 'none';
+    document.getElementById('results').innerHTML = '';
+
+    try {
+        const res = await fetch(`${API_BASE}/api/flight-offers/active`);
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        const offers = await res.json();
+        if (!offers.length) throw new Error('No active offers found');
+        calculations = buildCalculations(offers);
+        loadingEl.style.display = 'none';
+        inputEl.style.display = 'flex';
+    } catch (err) {
+        loadingEl.style.display = 'none';
+        errorEl.style.display = 'flex';
+        document.getElementById('error-msg').textContent = 'Could not load offers: ' + err.message;
+    }
+}
+
+// ── Existing Logic (unchanged) ───────────────────────────────────────────────
+
+function showToast(message) {
+    let toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = "show";
+    setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+}
+
+function toggleSearch() {
+    let box = document.getElementById('search-box-container');
+    if (box.style.display === 'flex') {
+        box.style.display = 'none';
+        document.getElementById('search-input').value = '';
+        filterResults();
+    } else {
+        box.style.display = 'flex';
+        document.getElementById('search-input').focus();
+    }
+}
+
+function toggleSorting() {
+    if (sortMode === 'together') {
+        sortMode = 'separate';
+        showToast("Sorting by: Separate Tickets Discount");
+    } else {
+        sortMode = 'together';
+        showToast("Sorting by: Together (Split) Discount");
+    }
+    sortAndRender();
+}
+
+function filterResults() {
+    let query = document.getElementById('search-input').value.toLowerCase();
+    let cards = document.getElementsByClassName('card');
+
+    resultData.forEach((res, index) => {
+        if (res.name.toLowerCase().includes(query)) {
+            cards[index].style.display = 'flex';
+        } else {
+            cards[index].style.display = 'none';
+        }
+    });
+}
+
+function calculate(){
+    let perPaxAmt = parseFloat(document.getElementById('amount').value);
+    if(isNaN(perPaxAmt) || perPaxAmt <= 0){ alert("Enter valid amount"); return; }
+
+    document.getElementById('discount-container').style.display = 'flex';
+    document.getElementById('discount').value = 0;
+
+    let paxCount = parseInt(document.getElementById('pax').value) || 1;
+    let sortToggleBtn = document.getElementById('sort-toggle');
+    if (paxCount > 1) {
+        sortToggleBtn.style.display = 'inline-block';
+    } else {
+        sortToggleBtn.style.display = 'none';
+        sortMode = 'together';
+    }
+
+    basePerPaxAmount = perPaxAmt;
+    updateDiscountedBtn();
+    computeResults();
+}
+
+function computeResults(){
+    let perPaxDiscountVal = parseInt(document.getElementById('discount').value) || 0;
+    let perPaxAmt = parseFloat(document.getElementById('amount').value);
+    let paxCount = parseInt(document.getElementById('pax').value) || 1;
+
+    let baseTotalAmount = perPaxAmt * paxCount;
+    let calculatedPerPaxDiscounted = Math.max(0, perPaxAmt - perPaxDiscountVal);
+    updateDiscountedBtn(calculatedPerPaxDiscounted);
+
+    resultData = calculations.map(calc => {
+        let resTogether;
+        let resSeparate;
+
+        if (calc.customFormula) {
+            resTogether = calc.customFormula(perPaxAmt, paxCount);
+            resSeparate = calc.customFormula(perPaxAmt, 1);
+        } else {
+            let discountTogether = Math.min(baseTotalAmount * calc.percent, calc.maxCap);
+            let convTogether = calc.convFeePerPax * paxCount;
+            resTogether = { total: baseTotalAmount - discountTogether + convTogether, discount: discountTogether, totalConv: convTogether };
+
+            let discountSeparate = Math.min(perPaxAmt * calc.percent, calc.maxCap);
+            let convSeparate = calc.convFeePerPax * 1;
+            resSeparate = { total: perPaxAmt - discountSeparate + convSeparate, discount: discountSeparate, totalConv: convSeparate };
+        }
+
+        let finalSeparateTotal = Math.floor(resSeparate.total);
+        let finalTogetherTotalPax = Math.floor(resTogether.total / paxCount);
+
+        let separateNetSaved = Math.floor(resSeparate.discount - resSeparate.totalConv);
+        let togetherNetSavedTotal = Math.floor(resTogether.discount - resTogether.totalConv);
+        let togetherNetSavedPerPax = Math.floor(togetherNetSavedTotal / paxCount);
+
+        return {
+            name: calc.name,
+            separateTotal: finalSeparateTotal,
+            separateDiscount: Math.floor(resSeparate.discount),
+            separateConv: Math.floor(resSeparate.totalConv),
+            separateNetSaved: separateNetSaved,
+
+            togetherTotalPerPax: finalTogetherTotalPax,
+            togetherDiscount: Math.floor(resTogether.discount),
+            togetherDiscountPerPax: Math.floor(resTogether.discount / paxCount),
+            togetherConv: Math.floor(resTogether.totalConv),
+            togetherNetSavedPerPax: togetherNetSavedPerPax,
+            togetherNetSavedTotal: togetherNetSavedTotal,
+
+            rawTicketCostPerPax: perPaxAmt,
+            marginSeparate: 0,
+            marginTogether: 0,
+            pax: paxCount
+        };
+    });
+
+    sortAndRender();
+}
+
+function sortAndRender() {
+    let paxCount = parseInt(document.getElementById('pax').value) || 1;
+    if (paxCount > 1 && sortMode === 'separate') {
+        resultData.sort((a, b) => b.separateNetSaved - a.separateNetSaved);
+    } else if (paxCount > 1 && sortMode === 'together') {
+        resultData.sort((a, b) => b.togetherNetSavedPerPax - a.togetherNetSavedPerPax);
+    } else {
+        resultData.sort((a, b) => b.separateNetSaved - a.separateNetSaved);
+    }
+    displayResults();
+    filterResults();
+}
+
+function displayResults(){
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '';
+
+    let paxCount = parseInt(document.getElementById('pax').value) || 1;
+
+    let targetSavingsList = resultData
+        .map(r => (paxCount > 1 && sortMode === 'together') ? r.togetherNetSavedPerPax : r.separateNetSaved)
+        .filter(val => val >= 0);
+
+    let distinctSavings = [...new Set(targetSavingsList)].sort((a, b) => b - a);
+    let maxSavings = distinctSavings.length > 0 ? distinctSavings[0] : 0;
+
+    let valueClusters = [];
+    let currentCluster = [];
+    let gapLimit = 60;
+
+    distinctSavings.forEach(val => {
+        if (currentCluster.length === 0) {
+            currentCluster.push(val);
+        } else if (Math.abs(currentCluster[0] - val) <= gapLimit) {
+            currentCluster.push(val);
+        } else {
+            valueClusters.push(currentCluster);
+            currentCluster = [val];
+        }
+    });
+    if (currentCluster.length > 0) valueClusters.push(currentCluster);
+
+    resultData.forEach(res => {
+        let card = document.createElement('div');
+        card.className = 'card';
+
+        let row1 = document.createElement('div');
+        row1.className = 'calc-row';
+
+        let calcBtn = document.createElement('button');
+        calcBtn.className = 'calc-button';
+        calcBtn.textContent = `${res.name}: ${res.separateTotal}`;
+        calcBtn.onclick = () => copyToClipboard(res.separateTotal + res.marginSeparate);
+        row1.appendChild(calcBtn);
+
+        let marginInput1 = document.createElement('input');
+        marginInput1.type = 'number';
+        marginInput1.className = 'margin-input';
+        marginInput1.placeholder = 'Margin';
+        row1.appendChild(marginInput1);
+        card.appendChild(row1);
+
+        let info = document.createElement('div');
+        info.className = 'info-text';
+
+        let discountText = document.createElement('span');
+        discountText.textContent = `Discount: ${res.separateDiscount}`;
+        let convText = document.createElement('span');
+        convText.textContent = `Convenience Fee: ${res.separateConv}`;
+        let afterFeeText = document.createElement('span');
+        afterFeeText.textContent = `Discount after Fee: ${res.separateNetSaved}`;
+
+        info.appendChild(discountText);
+        info.appendChild(convText);
+        info.appendChild(afterFeeText);
+
+        marginInput1.addEventListener('input', function(){
+            res.marginSeparate = parseInt(this.value) || 0;
+            let finalSeparate = res.separateTotal + res.marginSeparate;
+            calcBtn.textContent = `${res.name}: ${res.separateTotal} + ${res.marginSeparate}`;
+            calcBtn.onclick = () => copyToClipboard(finalSeparate);
+        });
+
+        let currentActiveSavings = (paxCount > 1 && sortMode === 'together') ? res.togetherNetSavedPerPax : res.separateNetSaved;
+
+        if(res.pax > 1) {
+            let multiSeparateNetTotal = res.separateNetSaved * res.pax;
+            let structuralLoss = multiSeparateNetTotal - res.togetherNetSavedTotal;
+
+            let nestedCard = document.createElement('div');
+            nestedCard.className = 'nested-split-card';
+
+            let compareText = '';
+            if(structuralLoss > 0) {
+                let lossPerPax = Math.floor(structuralLoss / res.pax);
+                compareText = `<span style="color: #ffeb3b; font-weight: bold;">⚠️ Loss booking together: ${lossPerPax} /pax (Total Loss: ${structuralLoss})</span>`;
+            } else {
+                compareText = `<span style="color: #8af7a2; font-weight: bold;">✅ Booking together is optimal</span>`;
+            }
+
+            nestedCard.innerHTML = `
+                <div>
+                    <strong>Split Booking Analysis (${res.pax} Pax):</strong><br><br>
+                    • Multi PNR: ${res.separateNetSaved} /pax (Total Discount: ${multiSeparateNetTotal})<br>
+                    • Single PNR: ${res.togetherNetSavedPerPax} /pax (Total Discount: ${res.togetherNetSavedTotal})<br><br>
+                    ${compareText}
+                </div>
+            `;
+
+            let row2 = document.createElement('div');
+            row2.className = 'calc-row';
+            row2.style.marginTop = '4px';
+
+            let togetherBtn = document.createElement('button');
+            togetherBtn.className = 'together-button';
+            togetherBtn.textContent = `Single PNR Cost: ${res.togetherTotalPerPax}`;
+            togetherBtn.onclick = () => copyToClipboard(res.togetherTotalPerPax + res.marginTogether);
+            row2.appendChild(togetherBtn);
+
+            let marginInput2 = document.createElement('input');
+            marginInput2.type = 'number';
+            marginInput2.className = 'margin-input';
+            marginInput2.placeholder = 'Margin';
+            row2.appendChild(marginInput2);
+
+            nestedCard.appendChild(row2);
+            info.appendChild(nestedCard);
+
+            marginInput2.addEventListener('input', function(){
+                res.marginTogether = parseInt(this.value) || 0;
+                let finalTogetherPerPax = res.togetherTotalPerPax + res.marginTogether;
+                togetherBtn.textContent = `Single PNR Cost: ${res.togetherTotalPerPax} + ${res.marginTogether}`;
+                togetherBtn.onclick = () => copyToClipboard(finalTogetherPerPax);
+            });
+        }
+
+        card.appendChild(info);
+
+        let isLoss = (currentActiveSavings < 0 || res.separateTotal >= res.rawTicketCostPerPax);
+
+        if (isLoss) {
+            card.style.background = 'linear-gradient(135deg, #7b0000, #990000)';
+        } else if (maxSavings > 0 && currentActiveSavings === maxSavings) {
+            card.style.background = 'linear-gradient(135deg, #054d2a, #0d7040)';
+        } else {
+            let matchedColor = false;
+
+            if (paxCount > 1) {
+                let clusterRank = valueClusters.findIndex(cluster => cluster.includes(currentActiveSavings));
+                if (clusterRank === 1) { card.style.background = 'linear-gradient(135deg, #1e3c72, #2a5298)'; matchedColor = true; }
+                else if (clusterRank === 2) { card.style.background = 'linear-gradient(135deg, #8a4f1d, #4a2c11)'; matchedColor = true; }
+                else if (clusterRank === 3) { card.style.background = 'linear-gradient(135deg, #0e6251, #117a65)'; matchedColor = true; }
+            } else {
+                let relativePerformanceRatio = currentActiveSavings / maxSavings;
+                if (relativePerformanceRatio >= 0.85) { card.style.background = 'linear-gradient(135deg, #1e3c72, #2a5298)'; matchedColor = true; }
+                else if (relativePerformanceRatio >= 0.60) { card.style.background = 'linear-gradient(135deg, #8a4f1d, #4a2c11)'; matchedColor = true; }
+                else if (relativePerformanceRatio >= 0.25) { card.style.background = 'linear-gradient(135deg, #0e6251, #117a65)'; matchedColor = true; }
+            }
+
+            if (!matchedColor) {
+                card.style.background = 'linear-gradient(135deg, #2c3e50, #1a252f)';
+            }
+        }
+
+        resultsDiv.appendChild(card);
+    });
+}
+
+function updateDiscountedBtn(val){
+    let displayVal = typeof val !== 'undefined' ? val : basePerPaxAmount;
+    let btn = document.getElementById('discounted-btn');
+    btn.textContent = `Discounted: ${displayVal}`;
+    btn.onclick = () => copyToClipboard(displayVal);
+}
+
+function copyToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Copied: ' + text);
+        }).catch(err => {
+            fallbackCopy(text);
+        });
+    } else {
+        fallbackCopy(text);
+    }
+}
+
+function fallbackCopy(text) {
+    let textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        alert('Copied: ' + text);
+    } catch (err) {
+        alert('Failed to copy');
+    }
+    document.body.removeChild(textarea);
+}
+
+document.getElementById('discount').addEventListener('input', computeResults);
+document.addEventListener('DOMContentLoaded', loadOffers);
+</script>
+
+</body>
+</html>

@@ -1,8 +1,8 @@
 import axios from 'axios'
 
-// const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8084'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8084'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.bhumiholidays.in'
+// const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.bhumiholidays.in'
 
 
 const http = axios.create({

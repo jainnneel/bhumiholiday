@@ -39,8 +39,12 @@ public class AuthService {
      * to the user. Returns the OTP string so the controller can expose it in dev
      * environments.
      */
-    public String sendOtp(String email) {
+    public String sendOtp(String email) throws BadRequestException {
         String normalised = email.toLowerCase().trim();
+
+        if (!userRepository.existsByEmail(normalised)) {
+            throw new BadRequestException("User does not exist. Please sign up first.");
+        }
 
         // Invalidate any existing unused OTPs for this email
         otpRepository.invalidateAllForEmail(normalised);

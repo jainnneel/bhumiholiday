@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flight Offers Admin</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0f4f8;
+    min-height: 100vh;
+}
+
+/* ── Login ── */
+#login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1e2e, #2c3e50);
+}
+.login-card {
+    background: white;
+    border-radius: 16px;
+    padding: 40px 36px;
+    width: 340px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    text-align: center;
+}
+.login-card h2 {
+    color: #1a252f;
+    margin-bottom: 6px;
+    font-size: 22px;
+}
+.login-card .subtitle {
+    color: #7f8c8d;
+    font-size: 13px;
+    margin-bottom: 28px;
+}
+.login-card input {
+    width: 100%;
+    padding: 11px 14px;
+    font-size: 14px;
+    border: 1.5px solid #dde1e7;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.login-card input:focus { border-color: #3498db; }
+.login-card button {
+    width: 100%;
+    padding: 12px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.login-card button:hover { background: #2980b9; }
+#login-error {
+    color: #e74c3c;
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+}
+
+/* ── Admin Layout ── */
+#admin-screen { display: none; min-height: 100vh; flex-direction: column; }
+
+header {
+    background: #1a252f;
+    color: white;
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+header h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.3px; }
+header .header-right { display: flex; align-items: center; gap: 14px; }
+header .admin-badge {
+    font-size: 12px;
+    background: rgba(255,255,255,0.12);
+    padding: 4px 10px;
+    border-radius: 20px;
+    color: #bdc3c7;
+}
+.logout-btn {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    color: #e74c3c;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.logout-btn:hover { background: #e74c3c; color: white; }
+
+main { flex: 1; padding: 24px; max-width: 1100px; margin: 0 auto; width: 100%; }
+
+/* ── Stats ── */
+.stats-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 14px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    min-width: 140px;
+    flex: 1;
+}
+.stat-card .stat-value { font-size: 26px; font-weight: 700; color: #2c3e50; }
+.stat-card .stat-label { font-size: 12px; color: #7f8c8d; margin-top: 2px; }
+.stat-card.active .stat-value { color: #27ae60; }
+.stat-card.inactive .stat-value { color: #95a5a6; }
+
+/* ── Toolbar ── */
+.toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.toolbar input {
+    flex: 1;
+    min-width: 200px;
+    padding: 9px 14px;
+    border: 1.5px solid #dde1e7;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.toolbar input:focus { border-color: #3498db; }
+.btn {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s;
+    white-space: nowrap;
+}
+.btn-primary { background: #3498db; color: white; }
+.btn-primary:hover { background: #2980b9; }
+.btn-success { background: #27ae60; color: white; }
+.btn-success:hover { background: #229954; }
+.btn-danger { background: #e74c3c; color: white; }
+.btn-danger:hover { background: #c0392b; }
+.btn-warning { background: #f39c12; color: white; }
+.btn-warning:hover { background: #d68910; }
+.btn-secondary { background: #ecf0f1; color: #555; border: 1px solid #dde1e7; }
+.btn-secondary:hover { background: #bdc3c7; }
+.btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 6px; }
+.refresh-btn { background: #ecf0f1; color: #555; border: 1px solid #dde1e7; }
+.refresh-btn:hover { background: #d0d3d4; }
+
+/* ── Table ── */
+.table-wrapper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: #2c3e50; color: white; }
+thead th {
+    padding: 13px 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+tbody tr { border-bottom: 1px solid #f0f2f5; transition: background 0.15s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #f8fafc; }
+tbody tr.inactive-row { opacity: 0.55; }
+td { padding: 12px 16px; font-size: 13px; color: #2c3e50; vertical-align: middle; }
+td.name-cell { font-weight: 500; }
+.actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ── Badges ── */
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+.badge-active { background: #d5f5e3; color: #1e8449; }
+.badge-inactive { background: #f2f3f4; color: #7f8c8d; }
+.badge-pct { background: #d6eaf8; color: #154360; }
+.badge-bfpp { background: #e8daef; color: #6c3483; }
+.badge-flpp { background: #fdebd0; color: #784212; }
+.badge-cf { background: #d1f2eb; color: #0e6655; }
+.badge-pfc { background: #fef9e7; color: #7d6608; border: 1px solid #f0e68c; }
+
+/* ── Empty state ── */
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: #95a5a6;
+}
+.empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+.empty-state p { font-size: 15px; }
+
+/* ── Modal ── */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+    background: white;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 520px;
+    padding: 28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    margin: auto;
+}
+.modal-box h3 { font-size: 18px; color: #1a252f; margin-bottom: 20px; }
+
+.form-group { margin-bottom: 14px; }
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #dde1e7;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    background: white;
+}
+.form-group input:focus, .form-group select:focus { border-color: #3498db; }
+.form-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+    cursor: pointer;
+}
+.form-row { display: flex; gap: 12px; }
+.form-row .form-group { flex: 1; }
+
+.formula-section {
+    background: #f8fafc;
+    border: 1px solid #e8ecf0;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+.formula-section h4 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #3498db;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+.formula-hint {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-bottom: 12px;
+    line-height: 1.5;
+    font-style: italic;
+}
+.formula-fields { display: none; }
+.formula-fields.active { display: block; }
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f2f5;
+}
+
+/* ── Toast ── */
+#toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 14px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+#toast.show { opacity: 1; }
+#toast.success { background: #27ae60; }
+#toast.error { background: #e74c3c; }
+#toast.info { background: #3498db; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+    main { padding: 12px; }
+    thead th:nth-child(3), td:nth-child(3) { display: none; }
+    thead th:nth-child(5), td:nth-child(5) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+    <div class="login-card">
+        <h2>✈ Flight Offers Admin</h2>
+        <p class="subtitle">Manage offers without touching code</p>
+        <input type="text" id="username" placeholder="Username" onkeydown="if(event.key==='Enter') login()">
+        <input type="password" id="password" placeholder="Password" onkeydown="if(event.key==='Enter') login()">
+        <button onclick="login()">Sign In</button>
+        <p id="login-error">Invalid username or password</p>
+    </div>
+</div>
+
+<!-- ══ ADMIN ══════════════════════════════════════════════════════════════ -->
+<div id="admin-screen">
+    <header>
+        <h1>✈ Flight Offers Management</h1>
+        <div class="header-right">
+            <span class="admin-badge">admin</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Stats -->
+        <div class="stats-bar" id="stats-bar">
+            <div class="stat-card"><div class="stat-value" id="stat-total">—</div><div class="stat-label">Total Offers</div></div>
+            <div class="stat-card active"><div class="stat-value" id="stat-active">—</div><div class="stat-label">Active</div></div>
+            <div class="stat-card inactive"><div class="stat-value" id="stat-inactive">—</div><div class="stat-label">Inactive</div></div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <input type="text" id="admin-search" placeholder="Search offers by name..." oninput="filterTable()">
+            <button class="btn refresh-btn" onclick="loadOffers()" title="Refresh">↺ Refresh</button>
+            <button class="btn btn-primary" onclick="openModal()">+ Add Offer</button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Order</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="offers-tbody"></tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<!-- ══ MODAL ══════════════════════════════════════════════════════════════ -->
+<div id="modal" class="modal-overlay" onclick="onOverlayClick(event)">
+    <div class="modal-box">
+        <h3 id="modal-title">Add Offer</h3>
+        <form id="offer-form" onsubmit="saveOffer(event)">
+
+            <div class="form-group">
+                <label>Offer Name *</label>
+                <input type="text" id="f-name" placeholder="e.g. MMT-12" required maxlength="100">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Offer Type *</label>
+                    <select id="f-type" onchange="onTypeChange()">
+                        <option value="PERCENTAGE">Percentage</option>
+                        <option value="BASE_FEE_PLUS_PERCENT">Base Fee + Percent</option>
+                        <option value="FLAT_PLUS_PERCENT">Flat + Percent</option>
+                        <option value="CONDITIONAL_FLAT">Conditional Flat</option>
+                        <option value="PERCENT_FLAT_CONV">Percent + Flat Conv</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex:0.5">
+                    <label>Display Order</label>
+                    <input type="number" id="f-order" value="0" min="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="display:flex;align-items:center;cursor:pointer;">
+                    <input type="checkbox" id="f-active" checked>
+                    Active (visible in analysis page)
+                </label>
+            </div>
+
+            <!-- Formula Parameters Section -->
+            <div class="formula-section">
+                <h4 id="formula-section-title">Formula Parameters</h4>
+                <p class="formula-hint" id="formula-hint"></p>
+
+                <!-- PERCENTAGE -->
+                <div class="formula-fields" id="fields-PERCENTAGE">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Percent (e.g. 0.12 for 12%)</label>
+                            <input type="number" id="f-percent" step="0.001" min="0.001" max="1" placeholder="0.12">
+                        </div>
+                        <div class="form-group">
+                            <label>Max Cap (₹)</label>
+                            <input type="number" id="f-maxcap" min="0" placeholder="1500">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Convenience Fee / Pax (₹)</label>
+                        <input type="number" id="f-convperpax" min="0" placeholder="535">
+                    </div>
+                </div>
+
+                <!-- BASE_FEE_PLUS_PERCENT (Air India GV style) -->
+                <div class="formula-fields" id="fields-BASE_FEE_PLUS_PERCENT">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Base Fee / Pax (₹)</label>
+                            <input type="number" id="f-basefee" min="0" placeholder="315">
+                        </div>
+                        <div class="form-group">
+                            <label>Percent Rate (e.g. 0.05)</label>
+                            <input type="number" id="f-bfpp-rate" step="0.001" min="0" placeholder="0.05">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Conv Fee / Pax (₹, 0 = none)</label>
+                        <input type="number" id="f-bfpp-conv" min="0" placeholder="0" value="0">
+                    </div>
+                </div>
+
+                <!-- FLAT_PLUS_PERCENT (EMT TEMPER style) -->
+                <div class="formula-fields" id="fields-FLAT_PLUS_PERCENT">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Flat Discount on Total (₹)</label>
+                            <input type="number" id="f-flatdisc" min="0" placeholder="250">
+                        </div>
+                        <div class="form-group">
+                            <label>Percent Rate (e.g. 0.12)</label>
+                            <input type="number" id="f-flpp-rate" step="0.001" min="0" placeholder="0.12">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Percent Cap (₹)</label>
+                            <input type="number" id="f-flpp-cap" min="0" placeholder="2000">
+                        </div>
+                        <div class="form-group">
+                            <label>Conv Fee / Pax (₹)</label>
+                            <input type="number" id="f-flpp-conv" min="0" placeholder="420">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONDITIONAL_FLAT (EMTTRAVEL style) -->
+                <div class="formula-fields" id="fields-CONDITIONAL_FLAT">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Minimum Total Threshold (₹)</label>
+                            <input type="number" id="f-threshold" min="0" placeholder="3250">
+                        </div>
+                        <div class="form-group">
+                            <label>Flat Discount (₹)</label>
+                            <input type="number" id="f-cf-disc" min="0" placeholder="805">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Conv Fee / Pax (₹)</label>
+                        <input type="number" id="f-cf-conv" min="0" placeholder="420">
+                    </div>
+                </div>
+
+                <!-- PERCENT_FLAT_CONV (Yatra style) -->
+                <div class="formula-fields" id="fields-PERCENT_FLAT_CONV">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Percent Rate (e.g. 0.06)</label>
+                            <input type="number" id="f-pfc-rate" step="0.001" min="0" placeholder="0.06">
+                        </div>
+                        <div class="form-group">
+                            <label>Percent Cap (₹)</label>
+                            <input type="number" id="f-pfc-cap" min="0" placeholder="9000">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Flat Conv Fee for Booking (₹, not per pax)</label>
+                        <input type="number" id="f-pfc-convflat" min="0" placeholder="400">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-success" id="save-btn">Save Offer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API_BASE = 'http://209.182.233.240:8084';
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'bhumi2025';
+
+let allOffers = [];
+let editingId = null;
+
+const TYPE_META = {
+    PERCENTAGE: {
+        label: 'Percentage',
+        badgeClass: 'badge-pct',
+        hint: 'Standard: Discount = min(total × percent, maxCap). Convenience fee charged per pax. e.g. MMT-12: 12% off, cap ₹1500, ₹535 conv/pax.'
+    },
+    BASE_FEE_PLUS_PERCENT: {
+        label: 'Base+%',
+        badgeClass: 'badge-bfpp',
+        hint: 'Base fee/pax removed first, then percent applied to remainder. e.g. Air India GV: remove ₹315/pax, then 5% off rest, no conv fee.'
+    },
+    FLAT_PLUS_PERCENT: {
+        label: 'Flat+%',
+        badgeClass: 'badge-flpp',
+        hint: 'Flat discount on total, then percent (with cap) on rest. e.g. EMT TEMPER: ₹250 flat off total + 12% on rest (max ₹2000), ₹420 conv/pax.'
+    },
+    CONDITIONAL_FLAT: {
+        label: 'Cond. Flat',
+        badgeClass: 'badge-cf',
+        hint: 'Fixed discount applied only when total ≥ threshold. e.g. EMTTRAVEL: ₹805 off if total ≥ ₹3250, else no discount. ₹420 conv/pax.'
+    },
+    PERCENT_FLAT_CONV: {
+        label: '% + Conv',
+        badgeClass: 'badge-pfc',
+        hint: 'Percent on total (with cap) as discount + single flat convenience fee for the whole booking. e.g. Yatra: 6% off (max ₹9000), ₹400 flat conv.'
+    }
+};
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+
+function login() {
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value;
+    if (user === ADMIN_USER && pass === ADMIN_PASS) {
+        localStorage.setItem('adminLoggedIn', 'true');
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-screen').style.display = 'flex';
+        loadOffers();
+    } else {
+        document.getElementById('login-error').style.display = 'block';
+        document.getElementById('password').value = '';
+    }
+}
+
+function logout() {
+    localStorage.removeItem('adminLoggedIn');
+    document.getElementById('admin-screen').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('login-error').style.display = 'none';
+}
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+
+async function loadOffers() {
+    try {
+        const res = await fetch(`${API_BASE}/api/flight-offers`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        allOffers = await res.json();
+        renderTable(allOffers);
+        updateStats(allOffers);
+    } catch (err) {
+        showToast('Failed to load offers: ' + err.message, 'error');
+    }
+}
+
+function updateStats(offers) {
+    const active = offers.filter(o => o.isActive).length;
+    document.getElementById('stat-total').textContent = offers.length;
+    document.getElementById('stat-active').textContent = active;
+    document.getElementById('stat-inactive').textContent = offers.length - active;
+}
+
+function renderTable(offers) {
+    const tbody = document.getElementById('offers-tbody');
+    if (!offers.length) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="icon">✈</div><p>No offers yet. Click "+ Add Offer" to create one.</p></div></td></tr>`;
+        return;
+    }
+    tbody.innerHTML = offers.map((o, i) => {
+        const meta = TYPE_META[o.offerType] || { label: o.offerType, badgeClass: '' };
+        return `
+        <tr class="${o.isActive ? '' : 'inactive-row'}" data-id="${o.id}">
+            <td>${o.id}</td>
+            <td class="name-cell">${escHtml(o.name)}</td>
+            <td><span class="badge ${meta.badgeClass}">${meta.label}</span></td>
+            <td><span class="badge ${o.isActive ? 'badge-active' : 'badge-inactive'}">${o.isActive ? 'Active' : 'Inactive'}</span></td>
+            <td>${o.displayOrder}</td>
+            <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="openModal(${o.id})">Edit</button>
+                <button class="btn btn-sm ${o.isActive ? 'btn-warning' : 'btn-success'}" onclick="toggleActive(${o.id})">${o.isActive ? 'Deactivate' : 'Activate'}</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteOffer(${o.id})">Delete</button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function filterTable() {
+    const q = document.getElementById('admin-search').value.toLowerCase();
+    const filtered = allOffers.filter(o => o.name.toLowerCase().includes(q));
+    renderTable(filtered);
+}
+
+// ── CRUD ──────────────────────────────────────────────────────────────────────
+
+async function saveOffer(event) {
+    event.preventDefault();
+    const payload = buildPayload();
+    if (!payload) return;
+
+    const saveBtn = document.getElementById('save-btn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+
+    try {
+        const url = editingId ? `${API_BASE}/api/flight-offers/${editingId}` : `${API_BASE}/api/flight-offers`;
+        const method = editingId ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(err.error || `HTTP ${res.status}`);
+        }
+        showToast(editingId ? 'Offer updated' : 'Offer created', 'success');
+        closeModal();
+        await loadOffers();
+    } catch (err) {
+        showToast('Save failed: ' + err.message, 'error');
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Offer';
+    }
+}
+
+async function deleteOffer(id) {
+    const offer = allOffers.find(o => o.id === id);
+    if (!confirm(`Delete offer "${offer ? offer.name : id}"? This cannot be undone.`)) return;
+    try {
+        const res = await fetch(`${API_BASE}/api/flight-offers/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        showToast('Offer deleted', 'info');
+        await loadOffers();
+    } catch (err) {
+        showToast('Delete failed: ' + err.message, 'error');
+    }
+}
+
+async function toggleActive(id) {
+    try {
+        const res = await fetch(`${API_BASE}/api/flight-offers/${id}/toggle`, { method: 'PATCH' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const updated = await res.json();
+        showToast(`Offer ${updated.isActive ? 'activated' : 'deactivated'}`, 'info');
+        await loadOffers();
+    } catch (err) {
+        showToast('Toggle failed: ' + err.message, 'error');
+    }
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+
+function openModal(id = null) {
+    editingId = id;
+    document.getElementById('offer-form').reset();
+    clearFormulaFields();
+
+    if (id) {
+        const offer = allOffers.find(o => o.id === id);
+        if (!offer) return;
+        document.getElementById('modal-title').textContent = 'Edit Offer';
+        document.getElementById('f-name').value = offer.name;
+        document.getElementById('f-type').value = offer.offerType;
+        document.getElementById('f-active').checked = offer.isActive;
+        document.getElementById('f-order').value = offer.displayOrder;
+        onTypeChange();
+        populateFormulaFields(offer);
+    } else {
+        document.getElementById('modal-title').textContent = 'Add Offer';
+        document.getElementById('f-type').value = 'PERCENTAGE';
+        document.getElementById('f-active').checked = true;
+        document.getElementById('f-order').value = 0;
+        onTypeChange();
+    }
+
+    document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    editingId = null;
+}
+
+function onOverlayClick(event) {
+    if (event.target === document.getElementById('modal')) closeModal();
+}
+
+function onTypeChange() {
+    const type = document.getElementById('f-type').value;
+    document.querySelectorAll('.formula-fields').forEach(el => el.classList.remove('active'));
+    const target = document.getElementById('fields-' + type);
+    if (target) target.classList.add('active');
+
+    const meta = TYPE_META[type];
+    document.getElementById('formula-hint').textContent = meta ? meta.hint : '';
+    document.getElementById('formula-section-title').textContent = meta ? `Parameters — ${meta.label}` : 'Formula Parameters';
+}
+
+function clearFormulaFields() {
+    document.querySelectorAll('.formula-section input').forEach(el => { el.value = ''; });
+    document.getElementById('f-bfpp-conv').value = '0';
+}
+
+function populateFormulaFields(offer) {
+    const p = offer.formulaParams ? JSON.parse(offer.formulaParams) : {};
+
+    if (offer.offerType === 'PERCENTAGE') {
+        document.getElementById('f-percent').value = offer.percent ?? '';
+        document.getElementById('f-maxcap').value = offer.maxCap ?? '';
+        document.getElementById('f-convperpax').value = offer.convFeePerPax ?? '';
+    } else if (offer.offerType === 'BASE_FEE_PLUS_PERCENT') {
+        document.getElementById('f-basefee').value = p.baseFeePerPax ?? '';
+        document.getElementById('f-bfpp-rate').value = p.percentRate ?? '';
+        document.getElementById('f-bfpp-conv').value = p.convFeePerPax ?? 0;
+    } else if (offer.offerType === 'FLAT_PLUS_PERCENT') {
+        document.getElementById('f-flatdisc').value = p.flatDiscount ?? '';
+        document.getElementById('f-flpp-rate').value = p.percentRate ?? '';
+        document.getElementById('f-flpp-cap').value = p.percentCap ?? '';
+        document.getElementById('f-flpp-conv').value = p.convFeePerPax ?? '';
+    } else if (offer.offerType === 'CONDITIONAL_FLAT') {
+        document.getElementById('f-threshold').value = p.threshold ?? '';
+        document.getElementById('f-cf-disc').value = p.flatDiscount ?? '';
+        document.getElementById('f-cf-conv').value = p.convFeePerPax ?? '';
+    } else if (offer.offerType === 'PERCENT_FLAT_CONV') {
+        document.getElementById('f-pfc-rate').value = p.percentRate ?? '';
+        document.getElementById('f-pfc-cap').value = p.percentCap ?? '';
+        document.getElementById('f-pfc-convflat').value = p.convFeeFlat ?? '';
+    }
+}
+
+function buildPayload() {
+    const type = document.getElementById('f-type').value;
+    const name = document.getElementById('f-name').value.trim();
+
+    if (!name) { showToast('Offer name is required', 'error'); return null; }
+
+    const base = {
+        name,
+        offerType: type,
+        isActive: document.getElementById('f-active').checked,
+        displayOrder: parseInt(document.getElementById('f-order').value) || 0
+    };
+
+    if (type === 'PERCENTAGE') {
+        const percent = parseFloat(document.getElementById('f-percent').value);
+        const maxCap = parseInt(document.getElementById('f-maxcap').value);
+        const conv = parseInt(document.getElementById('f-convperpax').value);
+        if (isNaN(percent) || isNaN(maxCap) || isNaN(conv)) {
+            showToast('All percentage fields are required', 'error'); return null;
+        }
+        return { ...base, percent, maxCap, convFeePerPax: conv };
+    }
+
+    if (type === 'BASE_FEE_PLUS_PERCENT') {
+        const baseFeePerPax = parseFloat(document.getElementById('f-basefee').value);
+        const percentRate = parseFloat(document.getElementById('f-bfpp-rate').value);
+        const convFeePerPax = parseFloat(document.getElementById('f-bfpp-conv').value) || 0;
+        if (isNaN(baseFeePerPax) || isNaN(percentRate)) {
+            showToast('Base fee and percent rate are required', 'error'); return null;
+        }
+        return { ...base, formulaParams: JSON.stringify({ baseFeePerPax, percentRate, convFeePerPax }) };
+    }
+
+    if (type === 'FLAT_PLUS_PERCENT') {
+        const flatDiscount = parseFloat(document.getElementById('f-flatdisc').value);
+        const percentRate = parseFloat(document.getElementById('f-flpp-rate').value);
+        const percentCap = parseFloat(document.getElementById('f-flpp-cap').value);
+        const convFeePerPax = parseFloat(document.getElementById('f-flpp-conv').value);
+        if ([flatDiscount, percentRate, percentCap, convFeePerPax].some(isNaN)) {
+            showToast('All flat+percent fields are required', 'error'); return null;
+        }
+        return { ...base, formulaParams: JSON.stringify({ flatDiscount, percentRate, percentCap, convFeePerPax }) };
+    }
+
+    if (type === 'CONDITIONAL_FLAT') {
+        const threshold = parseFloat(document.getElementById('f-threshold').value);
+        const flatDiscount = parseFloat(document.getElementById('f-cf-disc').value);
+        const convFeePerPax = parseFloat(document.getElementById('f-cf-conv').value);
+        if ([threshold, flatDiscount, convFeePerPax].some(isNaN)) {
+            showToast('All conditional flat fields are required', 'error'); return null;
+        }
+        return { ...base, formulaParams: JSON.stringify({ threshold, flatDiscount, convFeePerPax }) };
+    }
+
+    if (type === 'PERCENT_FLAT_CONV') {
+        const percentRate = parseFloat(document.getElementById('f-pfc-rate').value);
+        const percentCap = parseFloat(document.getElementById('f-pfc-cap').value);
+        const convFeeFlat = parseFloat(document.getElementById('f-pfc-convflat').value);
+        if ([percentRate, percentCap, convFeeFlat].some(isNaN)) {
+            showToast('All percent+conv fields are required', 'error'); return null;
+        }
+        return { ...base, formulaParams: JSON.stringify({ percentRate, percentCap, convFeeFlat }) };
+    }
+
+    return base;
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+
+function showToast(message, type = 'info') {
+    const el = document.getElementById('toast');
+    el.textContent = message;
+    el.className = `show ${type}`;
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => { el.className = type; }, 3000);
+}
+
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// Initialize type hint on load; restore session if previously logged in
+document.addEventListener('DOMContentLoaded', () => {
+    onTypeChange();
+    if (localStorage.getItem('adminLoggedIn') === 'true') {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-screen').style.display = 'flex';
+        loadOffers();
+    }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+
+</body>
+</html>
