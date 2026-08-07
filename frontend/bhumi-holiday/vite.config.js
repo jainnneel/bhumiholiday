@@ -20,7 +20,7 @@ export default defineConfig({
       '/coupen':     'https://api.bhumiholidays.in',
       '/auth':       'https://api.bhumiholidays.in',
       '/user':       'https://api.bhumiholidays.in',
-      '/api/ticket': 'https://api.bhumiholidays.in',
+      '/api/ticket': 'https://api.bhumiholidays.in'
 
       // Production: swap above to 'https://api.bhumiholidays.in'
     },
