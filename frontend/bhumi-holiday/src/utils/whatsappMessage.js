@@ -1,6 +1,21 @@
 import { BRAND } from './constants'
 
 /**
+ * Extracts flight numbers (e.g. "6E-123 → 6E-456") from the sectorKey.
+ * Each segment looks like "6E-123-DEL-BOM"; falls back to 'N/A'.
+ */
+function getFlightNumbers(sectorKeys) {
+  if (!sectorKeys || sectorKeys.length === 0) return 'N/A'
+
+  const codes = sectorKeys[0].split('|').map((seg) => {
+    const parts = seg.split('-')
+    return parts.length >= 2 ? `${parts[0]}-${parts[1]}` : null
+  }).filter(Boolean)
+
+  return codes.length ? codes.join(' → ') : 'N/A'
+}
+
+/**
  * Generates the WhatsApp booking inquiry message (domestic flight).
  *
  * @param {object} opts
@@ -37,10 +52,13 @@ export function buildWhatsAppMessage({ flight, passengers, email, mobile, coupon
 
   const couponDisplay = coupon && coupon.trim() ? coupon.trim() : 'None'
 
+  const flightNumbers = getFlightNumbers(flight.sectorKey)
+
   return `
 FLIGHT DETAILS
 --------------------------------------
 Airline: ${flight.flightName}
+Flight No: ${flightNumbers}
 Route: ${flight.fromc} → ${flight.toc}
 Date: ${flight.date}
 Departure: ${flight.fromTime}  |  Arrival: ${flight.toTime}
