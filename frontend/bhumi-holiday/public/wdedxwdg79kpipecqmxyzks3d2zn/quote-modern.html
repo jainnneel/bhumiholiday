@@ -805,13 +805,16 @@
         // ── Process each result (all URL logic identical to original) ──
         result.forEach(obj => {
 
+          const sk = parseSectorKey(obj.sectorKeys, obj.flightName);
+
           list.push({
             flightName: obj.flightName,
-            flightLabel: parseSectorKey(obj.sectorKeys, obj.flightName).flightLabel,
+            flightLabel: sk.flightLabel,
             from: from,
             to: to,
-            fromc: obj.from,
-            toc: obj.to,
+            // Actual airports for this flight, not the ones searched for.
+            fromc: sk.origin || obj.from,
+            toc: sk.destination || obj.to,
             date: obj.date,
             time: obj.fTime,
             duration: obj.duration,
@@ -915,7 +918,7 @@
      Returns { flightLabel, route, viaLabel }
   ══════════════════════════════════════════════════ */
   function parseSectorKey(sectorKeys, fallback) {
-    if (!sectorKeys || !sectorKeys.length) return { flightLabel: fallback, route: '', viaLabel: '' };
+    if (!sectorKeys || !sectorKeys.length) return { flightLabel: fallback, route: '', viaLabel: '', origin: '', destination: '' };
     const segments = sectorKeys[0].split('|');
     const flightLabels = [];
     const airports = [];
@@ -932,7 +935,12 @@
     return {
       flightLabel: flightLabels.length ? flightLabels.join(' › ') : fallback,
       route:       airports.join(' › '),
-      viaLabel:    vias.length ? 'via ' + vias.join(', ') : ''
+      viaLabel:    vias.length ? 'via ' + vias.join(', ') : '',
+      // Real endpoints for this itinerary. The API echoes the *searched*
+      // airport back in obj.from / obj.to, so a Goa (GOX) search labels every
+      // row GOX even when the flight actually lands at GOI (~35 km apart).
+      origin:      airports[0] || '',
+      destination: airports[airports.length - 1] || ''
     };
   }
 
@@ -1011,7 +1019,7 @@
         <div class="endpoint">
           <div class="time">${obj.fromTime}</div>
           <div class="time" style="display:none">${obj.fromTime.replace(":", "")}</div>
-          <div class="city">${obj.from}</div>
+          <div class="city">${info.origin || obj.from}</div>
           <div class="date">${fmtDepDate(obj.fromDate)}</div>
         </div>
         <div class="flight-line">
@@ -1024,7 +1032,7 @@
         <div class="endpoint arr">
           <div class="time">${obj.toTime}</div>
           <div class="time" style="display:none">${obj.toTime.replace(":", "")}</div>
-          <div class="city">${obj.to}</div>
+          <div class="city">${info.destination || obj.to}</div>
           <div class="date">${fmtArrDate(obj.toDate)}</div>
         </div>
       </div>
@@ -1099,7 +1107,7 @@ Your Trusted Travel Partner
 FLIGHT INFORMATION:
 ------------------
 Airline: ${obj.flightName}(${info.flightLabel})
-Route: ${obj.from} ➡️ ${obj.to}
+Route: ${info.origin || obj.from} ➡️ ${info.destination || obj.to}
 Date: ${obj.fromDate}
 Departure Time: ${obj.fromTime} - ${obj.toTime}
 Flight Duration: ${durBhumi} (${stopsLabel})
